@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="row">
+        <div class="span8">
+            <h2>Place an order</h2>
+            <form action="" method="POST">
+                <ul>
+                {% for product in products %}
+                    <li>
+                        <input type="number"
+                        name="{{ config.ORDER_COUNT_PREFIX}}{{ product.id }}">
+                        {{ product.name }}: {{ product.price | price }}
+                    </li>
+                {% endfor %}
+                </ul>
+                <p>
+                    <button type="submit" class="btn btn-primary">
+                        Place order
+                    </button>
+                </p>
+            </form>
+        </div>
+    </div>
+{% endblock %}

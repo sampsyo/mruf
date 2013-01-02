@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="row">
+        <div class="span8">
+            <h2>Harvest List</h2>
+            <ul>
+            {% for product in products %}
+                <li>
+                    {{ product.name }}: {{ product.total_ordered }}
+                    <ul>
+                    {% for item in product.ordered %}
+                        <li>
+                            {{ item.order.customer.name }}: {{ item.count }}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endblock %}

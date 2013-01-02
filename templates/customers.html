@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="row">
+        <div class="span8">
+            <h2>Customers</h2>
+            {% if action %}
+                <div class="alert alert-success">
+                    {{ action }}
+                </div>
+            {% endif %}
+            <ul>
+            {% for user in users %}
+                <li>
+                    <a href="{{ url_for('customer', user_id=user.id)}}">
+                        {{ user.name }}
+                    </a>
+                </li>
+            {% endfor %}
+            </ul>
+
+            <h2>Add a new customer</h2>
+            <form action="" method="POST">
+                <p>
+                    <label for="name">Name</label>
+                    <input type="text" name="name">
+                </p>
+                <p>
+                    <label for="email">Email</label>
+                    <input type="email" name="email">
+                </p>
+                <p>
+                    <button type="submit" class="btn btn-primary">
+                        Add
+                    </button>
+                </p>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="row">
+        <div class="span8">
+            <h2>Order Receipt</h2>
+            <ul>
+            {% for item in order.items %}
+                <li>
+                    {{ item.product.name }}:
+                    {{ item.count }} @ {{ item.price | price }}
+                </li>
+            {% endfor %}
+            </ul>
+            Total: {{ order.total }}
+        </div>
+    </div>
+{% endblock %}
