@@ -1,31 +1,48 @@
+{% macro prodform(product) -%}
+<form action="{{ url_for('products') if product is none
+                 else url_for('product', product_id=product.id) }}"
+    method="POST">
+    <input type="text" name="name" placeholder="Name"
+        value="{{ '' if product is none else product.name }}">
+    <input type="text" name="price" pattern="^\$?\d+(\.|\,)\d{2}$"
+        placeholder="Price"
+        value="{{ '' if product is none else product.price | price }}">
+    <button type="submit" class="btn btn-primary">
+        {% if product is none %}
+            Add
+        {% else %}
+            Save
+        {% endif %}
+    </button>
+</form>
+{% if product is not none %}
+<form action="{{ url_for('product', product_id=product.id) }}"
+    method="DELETE">
+    <button type="submit" class="btn btn-danger">
+        Delete
+    </button>
+</form>
+{% endif %}
+{%- endmacro %}
+
 {% extends "base.html" %}
 {% block content %}
-    <div class="row">
-        <div class="span8">
-            <h2>Products</h2>
-            <ul>
-            {% for product in products %}
-                <li>{{ product.name }}: {{ product.price | price }}</li>
-            {% endfor %}
-            </ul>
+<div class="row">
+<div class="span8">
 
-            <h2>Add a product</h2>
-            <form action="" method="POST">
-                <p>
-                    <label for="name">Name</label>
-                    <input type="text" name="name">
-                </p>
-                <p>
-                    <label for="price">Price</label>
-                    <input type="number" name="price" placeholder="5.00"
-                        pattern="^\$?\d+(\.|\,)\d{2}$">
-                </p>
-                <p>
-                    <button type="submit" class="btn btn-primary">
-                        Create
-                    </button>
-                </p>
-            </form>
-        </div>
-    </div>
+<h2>Products</h2>
+
+<ul>
+{% for product in products %}
+<li>
+    {{ prodform(product) }}
+</li>
+{% endfor %}
+</ul>
+
+<h2>Add a product</h2>
+{{ prodform(None) }}
+
+</div>
+</div>
 {% endblock %}

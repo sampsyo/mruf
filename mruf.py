@@ -10,7 +10,8 @@ import random
 import datetime
 from parsedatetime import parsedatetime
 import time
-from collections import defaultdict
+from werkzeug import url_decode
+
 
 app = Flask(__name__)
 app.config.update(
@@ -19,6 +20,22 @@ app.config.update(
 )
 app.config.from_pyfile('mruf.cfg')
 db = SQLAlchemy(app)
+
+
+# http://flask.pocoo.org/snippets/38/
+class MethodRewriteMiddleware(object):
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        if 'METHOD_OVERRIDE' in environ.get('QUERY_STRING', ''):
+            args = url_decode(environ['QUERY_STRING'])
+            method = args.get('__METHOD_OVERRIDE__')
+            if method:
+                method = method.encode('ascii', 'replace')
+                environ['REQUEST_METHOD'] = method
+        return self.app(environ, start_response)
+app.wsgi_app = MethodRewriteMiddleware(app.wsgi_app)
 
 
 def _hash_pass(password):
@@ -215,6 +232,24 @@ def products():
         db.session.commit()
 
     return render_template('products.html', products=Product.query.all())
+
+@app.route("/product/<int:product_id>", methods=['POST', 'DELETE'])
+def product(product_id):
+    if not g.admin:
+        abort(403)
+    product = Product.query.filter_by(id=product_id).first()
+    if not product:
+        abort(404)
+
+    if request.method == 'POST':
+        product.name = request.form['name']
+        product.price = _parse_price(request.form['price'])
+        db.session.commit()
+    elif request.method == 'DELETE':
+        db.session.delete(product)
+        db.session.commit()
+
+    return redirect(url_for('products'))
 
 def _show_harvest(dt):
     if not g.admin:
