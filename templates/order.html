@@ -5,10 +5,14 @@
 <div class="span8">
 {% if g.state.open %}
 
-<h2>Place an order</h2>
-<p>
-    Place an order before {{ g.state.next_harvest | dt(True) }}.
-</p>
+{% if g.admin %}
+    <h2>Create an order for {{ user.name }}</h2>
+{% else %}
+    <h2>Place an order</h2>
+    <p>
+        Place an order before {{ g.state.next_harvest | dt(True) }}.
+    </p>
+{% endif %}
 <form action="" method="POST">
 {{ macros.orderform(products, None) }}
 <p>

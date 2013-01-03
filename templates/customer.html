@@ -51,6 +51,12 @@
 {% endfor %}
 </ul>
 
+{% if g.admin %}
+<p><a href="{{ url_for('order_for', user_id=user.id) }}">
+    Place an order for {{ user.name }}.
+</a></p>
+{% endif %}
+
 </div>
 </div>
 {% endblock %}

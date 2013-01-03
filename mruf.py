@@ -325,18 +325,15 @@ def _order_counts():
                 out[product] = int(value)
     return out
 
-@app.route("/order", methods=['GET', 'POST'])
-def order():
-    if g.user is None:
-        abort(403)
-
+def _place_order(user):
     if request.method == 'GET':
         return render_template('order.html',
-            products=Product.query.filter_by(available=True)
+            products=Product.query.filter_by(available=True),
+            user=user
         )
 
     # Create a new order.
-    order = Order(g.user)
+    order = Order(user)
     db.session.add(order)
     for product, count in _order_counts().items():
         item = OrderItem(order, product, count)
@@ -344,6 +341,21 @@ def order():
     db.session.commit()
 
     return redirect(url_for('receipt', order_id=order.id))
+
+@app.route("/order", methods=['GET', 'POST'])
+def order():
+    if g.user is None:
+        abort(403)
+    return _place_order(g.user)
+
+@app.route("/order/<int:user_id>", methods=['GET', 'POST'])
+def order_for(user_id):
+    if not g.admin:
+        abort(403)
+    user = User.query.filter_by(id=user_id).first()
+    if not user:
+        abort(404)
+    return _place_order(user)
 
 @app.route("/orders/<int:order_id>", methods=['GET', 'POST'])
 def edit_order(order_id):

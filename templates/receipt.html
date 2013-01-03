@@ -25,6 +25,12 @@
     Total: {{ order.total | price }}
 </p>
 
+{% if g.admin %}
+<p><a href="{{ url_for('edit_order', order_id=order.id) }}">
+    Edit this order.
+</a></p>
+{% endif %}
+
 </div>
 </div>
 {% endblock %}
