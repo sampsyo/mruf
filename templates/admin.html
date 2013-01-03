@@ -7,6 +7,10 @@
 
 <form method="POST" action="">
     <p>
+        <label for="farm">Farm name</label>
+        <input name="farm" value="{{ g.state.farm }}">
+    </p>
+    <p>
         <label for="closed_message">Message when orders are closed</label>
         <textarea name="closed_message" rows="4" class="input-block-level">
             {{- g.state.closed_message -}}

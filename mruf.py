@@ -154,10 +154,12 @@ class State(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     next_harvest = db.Column(db.DateTime())
     closed_message = db.Column(db.UnicodeText())
+    farm = db.Column(db.Unicode(128))
 
     def __init__(self):
         self.next_harvest = datetime.datetime.now()
         self.closed_message = u'Orders are currently closed.'
+        self.farm = u'Farm Name'
 
     @property
     def open(self):
@@ -479,6 +481,7 @@ def admin():
 
     if request.method == 'POST':
         g.state.closed_message = request.form['closed_message']
+        g.state.farm = request.form['farm']
         db.session.commit()
 
     return render_template('admin.html')
