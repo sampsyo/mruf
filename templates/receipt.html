@@ -1,26 +1,30 @@
 {% extends "base.html" %}
 {% block content %}
-    <div class="row">
-        <div class="span8">
-            <h2>Receipt</h2>
-            <p>
-                For: {{ order.customer.name }}
-            </p>
-            <p>
-                Placed: {{ order.placed | dt }}
-            </p>
-            <p>
-                Harvested: {{ order.harvested | dt }}
-            </p>
-            <ul>
-            {% for item in order.items %}
-                <li>
-                    {{ item.product.name }}:
-                    {{ item.count }} @ {{ item.price | price }}
-                </li>
-            {% endfor %}
-            </ul>
-            Total: {{ order.total }}
-        </div>
-    </div>
+<div class="row">
+<div class="span8">
+
+<h2>Receipt</h2>
+<p>
+    For: {{ order.customer.name }}
+</p>
+<p>
+    Placed: {{ order.placed | dt }}
+</p>
+<p>
+    Harvested: {{ order.harvested | dt }}
+</p>
+<ul>
+{% for item in order.items %}
+    <li>
+        {{ item.product.name }}:
+        {{ item.count }} @ {{ item.price | price }}
+    </li>
+{% endfor %}
+</ul>
+<p>
+    Total: {{ order.total | price }}
+</p>
+
+</div>
+</div>
 {% endblock %}

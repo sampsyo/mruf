@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% import "_macros.html" as macros with context %}
+{% block content %}
+<div class="row">
+<div class="span8">
+
+<h2>Order for {{ order.customer.name }}</h2>
+
+<p>
+    <a href="{{ url_for('receipt', order_id=order.id) }}">
+        Show receipt.
+    </a>
+</p>
+
+<form action="" method="POST">
+    <p>
+        <label for="placed">Placed</label>
+        <input type="text" name="placed"
+            value="{{ order.placed | dt(True) }}">
+    </p>
+    <p>
+        <label for="harvested">Harvested</label>
+        <input type="text" name="harvested"
+            value="{{ order.harvested | dt(True) }}">
+    </p>
+    {{ macros.orderform(products, order) }}
+    <p>
+        <button type="submit" class="btn btn-primary">
+            Save
+        </button>
+    </p>
+</form>
+
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% macro orderform(products, order) %}
+<ul class="orderlist unstyled">
+{% for product in products %}
+    <li class="orderProduct" data-price="{{ product.price | pennies }}">
+        <input type="number" class="countfld orderCount"
+            name="{{ config.ORDER_COUNT_PREFIX }}{{ product.id }}"
+            {%- if order and product in order.items_by_product -%}
+                value="{{ order.items_by_product[product].count }}"
+            {%- endif %}>
+            {{ product.name }}: {{ product.price | price }}
+    </li>
+{% endfor %}
+</ul>
+<p>
+    <strong>Total:</strong>
+    <span id="orderTotal">$0.00</span>
+</p>
+{% endmacro %}

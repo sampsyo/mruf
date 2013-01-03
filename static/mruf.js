@@ -16,7 +16,7 @@ $(function() {
     });
 
     // Total up orders on order-placing page.
-    $('input.orderCount').change(function() {
+    var updateTotal = function() {
         var total = 0;
         $('.orderProduct').each(function(i, product) {
             var price = parseInt($(product).data('price'));
@@ -26,5 +26,7 @@ $(function() {
             }
         });
         $('#orderTotal').text(penniesToPrice(total));
-    });
+    };
+    $('input.orderCount').change(updateTotal);
+    updateTotal();
 });

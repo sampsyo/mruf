@@ -109,6 +109,13 @@ class Order(db.Model):
             total += item.cost
         return total
 
+    @property
+    def items_by_product(self):
+        out = {}
+        for item in self.items:
+            out[item.product] = item
+        return out
+
 class OrderItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('order.id'))
@@ -284,6 +291,8 @@ def _show_harvest(dt):
 @app.route("/harvests/latest")
 def latest_harvest():
     harvests = all_harvests()
+    if not harvests:
+        abort(404)
     return _show_harvest(harvests[0])
 
 @app.route("/harvests/<int:year>-<int:month>-<int:day>")
@@ -301,6 +310,21 @@ def harvests():
         abort(403)
     return render_template('harvests.html', harvests=all_harvests())
 
+def _order_counts():
+    """Get a dictionary mapping Products to integer counts from the
+    order form.
+    """
+    out = {}
+    prefix = app.config['ORDER_COUNT_PREFIX']
+    for key, value in request.form.items():
+        if key.startswith(prefix) and value:
+            product_id = int(key[len(prefix):])
+            product = Product.query.filter_by(id=product_id).first()
+            count = int(value)
+            if count:
+                out[product] = int(value)
+    return out
+
 @app.route("/order", methods=['GET', 'POST'])
 def order():
     if g.user is None:
@@ -314,24 +338,36 @@ def order():
     # Create a new order.
     order = Order(g.user)
     db.session.add(order)
-    prefix = app.config['ORDER_COUNT_PREFIX']
-    for key, value in request.form.items():
-        if key.startswith(prefix) and value:
-            product_id = int(key[len(prefix):])
-            product = Product.query.filter_by(id=product_id).first()
-            item = OrderItem(order, product, int(value))
-            db.session.add(item)
+    for product, count in _order_counts().items():
+        item = OrderItem(order, product, count)
+        db.session.add(item)
     db.session.commit()
 
     return redirect(url_for('receipt', order_id=order.id))
 
-@app.route("/orders")
-def orders():
-    if g.user is None:
+@app.route("/orders/<int:order_id>", methods=['GET', 'POST'])
+def edit_order(order_id):
+    if not g.admin:
         abort(403)
+    order = Order.query.filter_by(id=order_id).first()
+    if not order:
+        abort(404)
 
-    return render_template('orders.html',
-                           orders=Order.query.filter_by(customer=g.user).all())
+    if request.method == 'POST':
+        order.placed = _parse_dt(request.form['placed'])
+        order.harvested = _parse_dt(request.form['harvested'])
+        for product, count in _order_counts().items():
+            item = order.items_by_product.get(product)
+            if item:
+                item.count = count
+            else:
+                item = OrderItem(order, product, count)
+                db.session.add(item)
+        db.session.commit()
+
+    return render_template('edit_order.html',
+                           order=order,
+                           products=Product.query.all())
 
 @app.route("/orders/<int:order_id>/receipt")
 def receipt(order_id):

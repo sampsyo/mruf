@@ -1,33 +1,56 @@
 {% extends "base.html" %}
 {% block content %}
-    <div class="row">
-        <div class="span8">
-            <h2>Profile</h2>
-            <form action="" method="POST">
-                <p>
-                    <label for="name">Name</label>
-                    <input type="text" name="name" value="{{ user.name }}">
-                </p>
-                <p>
-                    <label for="email">Email</label>
-                    <input type="email" name="email" value="{{ user.email }}">
-                </p>
-                <p>
-                    <label for="password">Password</label>
-                    <input type="password" name="password">
-                </p>
-                <p>
-                    <label for="delivery_notes">Delivery</label>
-                    <textarea name="delivery_notes" rows="3">
-                        {{- user.delivery_notes or '' -}}
-                    </textarea>
-                </p>
-                <p>
-                    <button type="submit" class="btn btn-primary">
-                        Save
-                    </button>
-                </p>
-            </form>
-        </div>
-    </div>
+<div class="row">
+<div class="span8">
+
+<h2>Profile</h2>
+
+<form action="" method="POST">
+    <p>
+        <label for="name">Name</label>
+        <input type="text" name="name" value="{{ user.name }}">
+    </p>
+    <p>
+        <label for="email">Email</label>
+        <input type="email" name="email" value="{{ user.email }}">
+    </p>
+    <p>
+        <label for="password">Password</label>
+        <input type="password" name="password">
+    </p>
+    <p>
+        <label for="delivery_notes">Delivery</label>
+        <textarea name="delivery_notes" rows="3">
+            {{- user.delivery_notes or '' -}}
+        </textarea>
+    </p>
+    <p>
+        <button type="submit" class="btn btn-primary">
+            Save
+        </button>
+    </p>
+</form>
+
+<h2>Order history</h2>
+
+<ul class="unstyled">
+{% for order in user.orders %}
+    <li>
+        <a href="
+            {%- if g.admin -%}
+                {{ url_for('edit_order', order_id=order.id) }}
+            {%- else -%}
+                {{ url_for('receipt', order_id=order.id) }}
+            {%- endif %}">
+            {{- order.harvested | dt -}}
+        </a>:
+        {{ order.total | price }}
+    </li>
+{% else %}
+    <li>No orders have been placed.</li>
+{% endfor %}
+</ul>
+
+</div>
+</div>
 {% endblock %}
