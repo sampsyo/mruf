@@ -1,11 +1,11 @@
 {% macro prodform(product) -%}
 <form action="{{ url_for('products') if product is none
                  else url_for('product', product_id=product.id) }}"
-    method="POST">
+    method="POST" class="form-inline">
     <input type="text" name="name" placeholder="Name"
         value="{{ '' if product is none else product.name }}">
-    <input type="text" name="price" pattern="^\$?\d+(\.|\,)\d{2}$"
-        placeholder="Price"
+    <input type="text" name="price" pattern="^\$?\d+([\.\,]\d{2})?$"
+        placeholder="Price" class="pricefld"
         value="{{ '' if product is none else product.price | price }}">
     <button type="submit" class="btn btn-primary">
         {% if product is none %}
@@ -17,7 +17,7 @@
 </form>
 {% if product is not none %}
 <form action="{{ url_for('product', product_id=product.id) }}"
-    method="DELETE">
+    method="DELETE" class="form-inline prodform">
     <button type="submit" class="btn btn-danger">
         Delete
     </button>
@@ -30,17 +30,16 @@
 <div class="row">
 <div class="span8">
 
-<h2>Products</h2>
-
-<ul>
+<h3>Products</h3>
+<ul class="prodlist unstyled">
 {% for product in products %}
-<li>
-    {{ prodform(product) }}
-</li>
+    <li>
+        {{ prodform(product) }}
+    </li>
 {% endfor %}
 </ul>
 
-<h2>Add a product</h2>
+<h3>Add a product</h3>
 {{ prodform(None) }}
 
 </div>
