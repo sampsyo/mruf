@@ -221,15 +221,18 @@ def _show_harvest(dt):
         abort(403)
 
     orders = Order.query.filter_by(harvested=dt).all()
+    order_ids = [o.id for o in orders]
     # There is almost certainly a real query for this.
-    product_items = defaultdict(list)
-    for order in orders:
-        for item in order.items:
-            product_items[item.product].append(item)
+    product_info = []
+    for product in Product.query:
+        items = product.ordered.filter(OrderItem.order_id.in_(order_ids)).all()
+        if items:
+            total = sum(item.count for item in items)
+            product_info.append((product, items, total))
 
     return render_template('harvest.html',
                            orders=orders,
-                           product_items=dict(product_items),
+                           product_info=product_info,
                            harvestdt=dt)
 
 @app.route("/harvests/latest")

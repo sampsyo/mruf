@@ -2,23 +2,22 @@
 {% block content %}
     <div class="row">
         <div class="span8">
-            Showing {{ orders | length }} orders for {{ harvestdt | dt }}.
+            Showing
+            {% if orders | length == 1 %}
+                one order
+            {% else %}
+                {{ orders | length }} orders
+            {% endif %}
+            for {{ harvestdt | dt }}.
             <a href="{{ url_for('harvests') }}">
                 Show all harvests.
             </a>
 
             <h2>Harvest List</h2>
             <ul>
-            {% for product, items in product_items.items() %}
+            {% for product, items, total in product_info %}
                 <li>
-                    {{ product.name }}: TOTAL
-                    <ul>
-                    {% for item in items %}
-                        <li>
-                            {{ item.order.customer.name }}: {{ item.count }}
-                        </li>
-                    {% endfor %}
-                    </ul>
+                    {{ product.name }}: {{ total }}
                 </li>
             {% endfor %}
             </ul>
