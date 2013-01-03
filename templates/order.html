@@ -31,7 +31,9 @@
 
 {% else %}
 
-<p>Orders are currently <strong>closed</strong>.</p>
+<p>
+    {{ g.state.closed_message }}
+</p>
 
 {% endif %}
 </div>

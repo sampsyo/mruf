@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+<div class="span8">
+
+<h2>What&rsquo;s available</h2>
+<ul class="unstyled">
+{% for product in products %}
+    <li>
+        {{ product.name }}: {{ product.price | price }}
+    </li>
+{% endfor %}
+</ul>
+
+</div>
+</div>
+{% endblock %}

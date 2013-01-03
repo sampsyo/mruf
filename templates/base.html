@@ -11,9 +11,8 @@
         <div class="navbar">
             <div class="navbar-inner">
                 <a class="brand" href="/">Moon Rabbit Urban Farm</a>
-                {% if g.user %}
                 <ul class="nav">
-                    {% if g.user.admin %}
+                    {% if g.admin %}
                         <li><a href="{{ url_for('availability') }}">
                             Availability
                         </a></li>
@@ -26,7 +25,10 @@
                         <li><a href="{{ url_for('customers') }}">
                             Customers
                         </a></li>
-                    {% else %}
+                        <li><a href="{{ url_for('admin') }}">
+                            Admin
+                        </a></li>
+                    {% elif g.user %}
                         <li><a href="{{ url_for('order') }}">
                             Place Order
                         </a></li>
@@ -37,9 +39,19 @@
                             Account
                         </a></li>
                     {% endif %}
-                    <li><a href="{{ url_for('logout') }}">Sign Out</a></li>
+                    {% if g.user %}
+                        <li><a href="{{ url_for('logout') }}">
+                            Sign Out
+                        </a></li>
+                    {% else %}
+                        <li><a href="{{ url_for('main') }}">
+                            Sign In
+                        </a></li>
+                        <li><a href="{{ url_for('products') }}">
+                            What&rsquo;s Available
+                        </a></li>
+                    {% endif %}
                 </ul>
-                {% endif %}
             </div>
         </div>
 

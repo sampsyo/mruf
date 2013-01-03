@@ -146,6 +146,11 @@ class Product(db.Model):
 class State(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     next_harvest = db.Column(db.DateTime())
+    closed_message = db.Column(db.UnicodeText())
+
+    def __init__(self):
+        self.next_harvest = datetime.datetime.now()
+        self.closed_message = u'Orders are currently closed.'
 
     @property
     def open(self):
@@ -225,19 +230,21 @@ def logout():
 
 @app.route("/products", methods=['GET', 'POST'])
 def products():
-    if not g.admin:
-        abort(403)
+    if g.admin:
+        if request.method == 'POST':
+            name = request.form['name']
+            price = _parse_price(request.form['price'])
+            product = Product(name, price)
+            db.session.add(product)
+            db.session.commit()
+        return render_template('products.html', products=Product.query.all())
+    
+    else:
+        return render_template('product_preview.html',
+            products=Product.query.filter_by(available=True).all()
+        )
 
-    if request.method == 'POST':
-        name = request.form['name']
-        price = _parse_price(request.form['price'])
-        product = Product(name, price)
-        db.session.add(product)
-        db.session.commit()
-
-    return render_template('products.html', products=Product.query.all())
-
-@app.route("/product/<int:product_id>", methods=['POST', 'DELETE'])
+@app.route("/products/<int:product_id>", methods=['POST', 'DELETE'])
 def product(product_id):
     if not g.admin:
         abort(403)
@@ -416,6 +423,17 @@ def availability():
         db.session.commit()
 
     return render_template('availability.html', products=Product.query.all())
+
+@app.route("/admin", methods=['GET', 'POST'])
+def admin():
+    if not g.admin:
+        abort(403)
+
+    if request.method == 'POST':
+        g.state.closed_message = request.form['closed_message']
+        db.session.commit()
+
+    return render_template('admin.html')
 
 
 if __name__ == '__main__':
