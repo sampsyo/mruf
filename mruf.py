@@ -7,10 +7,12 @@ from decimal import Decimal
 import sqlalchemy
 import string
 import random
+import datetime
 
 app = Flask(__name__)
 app.config.update(
-    ORDER_COUNT_PREFIX=u'order_'
+    ORDER_COUNT_PREFIX=u'order_',
+    AVAILABLE_PREFIX=u'available_',
 )
 app.config.from_pyfile('mruf.cfg')
 db = SQLAlchemy(app)
@@ -44,10 +46,11 @@ class IntegerDecimal(sqlalchemy.types.TypeDecorator):
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(256), unique=True)
-    name = db.Column(db.String(512), unique=True)
+    email = db.Column(db.Unicode(256), unique=True)
+    name = db.Column(db.Unicode(512))
     password = db.Column(db.String(256))
     admin = db.Column(db.Boolean)
+    delivery_notes = db.Column(db.UnicodeText)
 
     def __init__(self, email, name, password, admin):
         self.email = email
@@ -63,9 +66,13 @@ class Order(db.Model):
     customer_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     customer = db.relationship('User',
                                backref=db.backref('orders', lazy='dynamic'))
+    placed = db.Column(db.DateTime)
+    harvested = db.Column(db.DateTime)
 
     def __init__(self, customer):
         self.customer = customer
+        self.placed = datetime.datetime.now()
+        self.harvested = g.state.next_harvest
 
     def __repr__(self):
         return '<Order {0} for {1}>'.format(self.id, self.customer.email)
@@ -99,12 +106,14 @@ class OrderItem(db.Model):
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(256))
+    name = db.Column(db.Unicode(256))
     price = db.Column(IntegerDecimal)
+    available = db.Column(db.Boolean)
 
     def __init__(self, name, price):
         self.name = name
         self.price = price
+        self.order_by = None
 
     def __repr__(self):
         return '<Product {0}>'.format(self.name)
@@ -113,9 +122,13 @@ class Product(db.Model):
     def total_ordered(self):
         return sum(i.count for i in self.ordered)
 
+class State(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    next_harvest = db.Column(db.DateTime())
+
 
 @app.before_request
-def _load_user():
+def _load_globals():
     if 'userid' in session:
         g.user = User.query.filter_by(id=session['userid']).first()
         if g.user is not None:
@@ -123,6 +136,8 @@ def _load_user():
     else:
         g.user = None
         g.admin = False
+
+    g.state = State.query.first()
 
 @app.template_filter('price')
 def _price_filter(value):
@@ -134,7 +149,7 @@ def _price_filter(value):
 def main():
     if g.user:
         if g.user.admin:
-            return render_template('farmer_home.html')
+            return redirect(url_for('availability'))
         else:
             return render_template('customer_home.html')
     else:
@@ -182,7 +197,9 @@ def harvest():
 @app.route("/order", methods=['GET', 'POST'])
 def order():
     if request.method == 'GET':
-        return render_template('order.html', products=Product.query.all())
+        return render_template('order.html',
+            products=Product.query.filter_by(available=True)
+        )
 
     # Create a new order.
     order = Order(g.user)
@@ -265,6 +282,28 @@ def customer(user_id):
             return redirect(url_for('main'))
     else:
         return render_template('customer.html', user=user)
+
+@app.route("/availability", methods=['GET', 'POST'])
+def availability():
+    if not g.admin:
+        abort(403)
+
+    if request.method == 'POST':
+        # Gather products to mark as available.
+        available_ids = []
+        for key, value in request.form.items():
+            if key.startswith(app.config['AVAILABLE_PREFIX']) and value:
+                available_ids.append(
+                    int(key[len(app.config['AVAILABLE_PREFIX']):])
+                )
+        
+        # Clear all flags and set specific ones.
+        Product.query.update({
+            'available': Product.id.in_(available_ids)
+        }, synchronize_session=False)
+        db.session.commit()
+
+    return render_template('availability.html', products=Product.query.all())
 
 
 if __name__ == '__main__':

@@ -12,8 +12,10 @@
                 <a class="brand" href="/">Moon Rabbit Urban Farm</a>
                 {% if g.user %}
                 <ul class="nav">
-                    <li><a href="{{ url_for('main') }}">Home</a></li>
                     {% if g.user.admin %}
+                        <li><a href="{{ url_for('availability') }}">
+                            Availability
+                        </a></li>
                         <li><a href="{{ url_for('products') }}">
                             Products
                         </a></li>

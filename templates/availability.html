@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="row">
+        <div class="span8">
+            <h2>Available Products</h2>
+            <form action="" method="POST">
+                <ul>
+                {% for product in products %}
+                <li><label class="checkbox">
+                    <input type="checkbox"
+                        name="{{ config.AVAILABLE_PREFIX }}{{ product.id }}"
+                        {% if product.available %}
+                            checked="checked"
+                        {% endif %}
+                        value="1">
+                    {{ product.name }}
+                </label></li>
+                {% endfor %}
+                </ul>
+
+                <button type="submit" class="btn btn-primary">
+                    Set Availability
+                </button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
