@@ -3,6 +3,7 @@
     <div class="row">
         <div class="span8">
             <h2>Order Receipt</h2>
+            Placed on {{ order.placed | dt }}
             <ul>
             {% for item in order.items %}
                 <li>

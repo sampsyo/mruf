@@ -8,6 +8,8 @@ import sqlalchemy
 import string
 import random
 import datetime
+from parsedatetime import parsedatetime
+import time
 
 app = Flask(__name__)
 app.config.update(
@@ -27,6 +29,11 @@ def _parse_price(s):
     if s.startswith('$'):
         s = s[1:]
     return Decimal(s).quantize(Decimal('1.00'))
+
+_calendar = parsedatetime.Calendar()
+def _parse_dt(s):
+    ts, _ = _calendar.parse(s)
+    return datetime.datetime.fromtimestamp(time.mktime(ts))
 
 def _random_string(length=20, chars=(string.ascii_letters + string.digits)):
     return ''.join(random.choice(chars) for i in range(length))
@@ -126,6 +133,12 @@ class State(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     next_harvest = db.Column(db.DateTime())
 
+    @property
+    def open(self):
+        if self.next_harvest is None:
+            return False
+        return self.next_harvest > datetime.datetime.now()
+
 
 @app.before_request
 def _load_globals():
@@ -143,6 +156,15 @@ def _load_globals():
 def _price_filter(value):
     value = Decimal(value).quantize(Decimal('1.00'))
     return u'${0}'.format(value)
+
+@app.template_filter('dt')
+def _datetime_filter(value, withtime=False):
+    if value is None:
+        return ''
+    fmt = '%B %-e, %Y'
+    if withtime:
+        fmt += ', %-l:%M %p'
+    return value.strftime(fmt)
 
 
 @app.route("/")
@@ -289,6 +311,9 @@ def availability():
         abort(403)
 
     if request.method == 'POST':
+        # Set harvest date.
+        g.state.next_harvest = _parse_dt(request.form['next_harvest'])
+
         # Gather products to mark as available.
         available_ids = []
         for key, value in request.form.items():
@@ -301,6 +326,7 @@ def availability():
         Product.query.update({
             'available': Product.id.in_(available_ids)
         }, synchronize_session=False)
+
         db.session.commit()
 
     return render_template('availability.html', products=Product.query.all())

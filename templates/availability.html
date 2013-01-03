@@ -2,8 +2,22 @@
 {% block content %}
     <div class="row">
         <div class="span8">
-            <h2>Available Products</h2>
             <form action="" method="POST">
+                <h3>Next Harvest</h3>
+                <p>
+                    Orders are currently
+                    <strong>
+                        {%- if g.state.open -%}
+                            open
+                        {%- else -%}
+                            closed
+                        {%- endif -%}
+                    </strong>.
+                </p>
+                <input type="text" name="next_harvest"
+                    value="{{ g.state.next_harvest | dt(True) }}">
+
+                <h3>Available Products</h3>
                 <ul>
                 {% for product in products %}
                 <li><label class="checkbox">
@@ -18,9 +32,7 @@
                 {% endfor %}
                 </ul>
 
-                <button type="submit" class="btn btn-primary">
-                    Set Availability
-                </button>
+                <button type="submit" class="btn btn-primary">Save</button>
             </form>
         </div>
     </div>
