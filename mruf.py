@@ -171,6 +171,10 @@ def _price_filter(value):
     value = Decimal(value).quantize(Decimal('1.00'))
     return u'${0}'.format(value)
 
+@app.template_filter('pennies')
+def _pennies_filter(value):
+    return unicode(int(value * 100))
+
 @app.template_filter('dt')
 def _datetime_filter(value, withtime=False):
     if value is None:

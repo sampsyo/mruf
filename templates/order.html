@@ -1,31 +1,39 @@
 {% extends "base.html" %}
 {% block content %}
-    <div class="row">
-        <div class="span8">
-            {% if g.state.open %}
-            <h2>Place an order</h2>
-            <p>
-                Place an order before {{ g.state.next_harvest | dt(True) }}.
-            </p>
-            <form action="" method="POST">
-                <ul>
-                {% for product in products %}
-                    <li>
-                        <input type="number"
-                        name="{{ config.ORDER_COUNT_PREFIX}}{{ product.id }}">
-                        {{ product.name }}: {{ product.price | price }}
-                    </li>
-                {% endfor %}
-                </ul>
-                <p>
-                    <button type="submit" class="btn btn-primary">
-                        Place order
-                    </button>
-                </p>
-            </form>
-            {% else %}
-                Orders are currently <strong>closed</strong>.
-            {% endif %}
-        </div>
-    </div>
+<div class="row">
+<div class="span8">
+{% if g.state.open %}
+
+<h2>Place an order</h2>
+<p>
+    Place an order before {{ g.state.next_harvest | dt(True) }}.
+</p>
+<form action="" method="POST">
+<ul class="orderlist unstyled">
+{% for product in products %}
+    <li class="orderProduct" data-price="{{ product.price | pennies }}">
+        <input type="number" class="countfld orderCount"
+            name="{{ config.ORDER_COUNT_PREFIX}}{{ product.id }}">
+            {{ product.name }}: {{ product.price | price }}
+    </li>
+{% endfor %}
+</ul>
+<p>
+    <strong>Total:</strong>
+    <span id="orderTotal">$0.00</span>
+</p>
+<p>
+    <button type="submit" class="btn btn-primary">
+        Place order
+    </button>
+</p>
+</form>
+
+{% else %}
+
+<p>Orders are currently <strong>closed</strong>.</p>
+
+{% endif %}
+</div>
+</div>
 {% endblock %}
