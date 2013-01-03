@@ -6,18 +6,10 @@
             <ul>
             {% for order in orders %}
                 <li>
-                    Total: {{ order.total | price }}
                     <a href="{{ url_for('receipt', order_id=order.id) }}">
-                        (receipt)
-                    </a>
-                    <ul>
-                    {% for item in order.items %}
-                        <li>
-                            {{ item.product.name }}:
-                            {{ item.count }} @ {{ item.price | price }}
-                        </li>
-                    {% endfor %}
-                    </ul>
+                        {{- order.harvested | dt -}}
+                    </a>:
+                    {{ order.total | price }}
                 </li>
             {% endfor %}
             </ul>

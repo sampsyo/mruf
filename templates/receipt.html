@@ -2,8 +2,16 @@
 {% block content %}
     <div class="row">
         <div class="span8">
-            <h2>Order Receipt</h2>
-            Placed on {{ order.placed | dt }}
+            <h2>Receipt</h2>
+            <p>
+                For: {{ order.customer.name }}
+            </p>
+            <p>
+                Placed: {{ order.placed | dt }}
+            </p>
+            <p>
+                Harvested: {{ order.harvested | dt }}
+            </p>
             <ul>
             {% for item in order.items %}
                 <li>

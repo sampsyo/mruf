@@ -2,13 +2,18 @@
 {% block content %}
     <div class="row">
         <div class="span8">
+            Showing {{ orders | length }} orders for {{ harvestdt | dt }}.
+            <a href="{{ url_for('harvests') }}">
+                Show all harvests.
+            </a>
+
             <h2>Harvest List</h2>
             <ul>
-            {% for product in products %}
+            {% for product, items in product_items.items() %}
                 <li>
-                    {{ product.name }}: {{ product.total_ordered }}
+                    {{ product.name }}: TOTAL
                     <ul>
-                    {% for item in product.ordered %}
+                    {% for item in items %}
                         <li>
                             {{ item.order.customer.name }}: {{ item.count }}
                         </li>
@@ -17,6 +22,25 @@
                 </li>
             {% endfor %}
             </ul>
+
+            <h2>Orders</h2>
+            {% for order in orders %}
+                <li>
+                    <a href="{{ url_for('customer', user_id=order.customer.id) }}">
+                        {{- order.customer.name -}}
+                    </a>:
+                    {{ order.total | price }}.
+                    Delivery: {{ order.customer.delivery_notes }}
+                    <ul>
+                    {% for item in order.items %}
+                        <li>
+                            {{ item.product.name }}:
+                            {{ item.count }}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
         </div>
     </div>
 {% endblock %}

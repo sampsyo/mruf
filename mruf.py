@@ -10,6 +10,7 @@ import random
 import datetime
 from parsedatetime import parsedatetime
 import time
+from collections import defaultdict
 
 app = Flask(__name__)
 app.config.update(
@@ -125,10 +126,6 @@ class Product(db.Model):
     def __repr__(self):
         return '<Product {0}>'.format(self.name)
 
-    @property
-    def total_ordered(self):
-        return sum(i.count for i in self.ordered)
-
 class State(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     next_harvest = db.Column(db.DateTime())
@@ -166,6 +163,15 @@ def _datetime_filter(value, withtime=False):
         fmt += ', %-l:%M %p'
     return value.strftime(fmt)
 
+def all_harvests():
+    """Get a list of harvest dates for which orders have been placed.
+    """
+    res = db.session.query(sqlalchemy.distinct(Order.harvested)) \
+                    .filter(Order.harvested != None) \
+                    .order_by(Order.harvested) \
+                    .all()
+    return [r[0] for r in res]
+
 
 @app.route("/")
 def main():
@@ -173,7 +179,7 @@ def main():
         if g.user.admin:
             return redirect(url_for('availability'))
         else:
-            return render_template('customer_home.html')
+            return redirect(url_for('order'))
     else:
         return render_template('login.html')
 
@@ -210,14 +216,47 @@ def products():
 
     return render_template('products.html', products=Product.query.all())
 
-@app.route("/harvest", methods=['GET', 'POST'])
-def harvest():
+def _show_harvest(dt):
     if not g.admin:
         abort(403)
-    return render_template('harvest.html', products=Product.query.all())
+
+    orders = Order.query.filter_by(harvested=dt).all()
+    # There is almost certainly a real query for this.
+    product_items = defaultdict(list)
+    for order in orders:
+        for item in order.items:
+            product_items[item.product].append(item)
+
+    return render_template('harvest.html',
+                           orders=orders,
+                           product_items=dict(product_items),
+                           harvestdt=dt)
+
+@app.route("/harvests/latest")
+def latest_harvest():
+    harvests = all_harvests()
+    return _show_harvest(harvests[0])
+
+@app.route("/harvests/<int:year>-<int:month>-<int:day>")
+def harvest(year, month, day):
+    target = datetime.date(year, month, day)
+    for harvest in all_harvests():
+        app.logger.info('{} {}'.format(harvest.date(), target))
+        if harvest.date() == target:
+            return _show_harvest(harvest)
+    abort(404)
+
+@app.route("/harvests")
+def harvests():
+    if not g.admin:
+        abort(403)
+    return render_template('harvests.html', harvests=all_harvests())
 
 @app.route("/order", methods=['GET', 'POST'])
 def order():
+    if g.user is None:
+        abort(403)
+
     if request.method == 'GET':
         return render_template('order.html',
             products=Product.query.filter_by(available=True)
@@ -297,11 +336,16 @@ def customer(user_id):
             user.email = request.form['email']
         if request.form.get('password'):
             user.password = _hash_pass(request.form['password'])
+        if request.form.get('delivery_notes'):
+            user.delivery_notes = request.form['delivery_notes']
+
         db.session.commit()
+
         if g.admin:
             return redirect(url_for('customers'))
         else:
             return redirect(url_for('main'))
+
     else:
         return render_template('customer.html', user=user)
 

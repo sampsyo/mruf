@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="row">
+        <div class="span8">
+            <h2>Harvests</h2>
+            <ul>
+            {% for harvest in harvests %}
+                <li>
+                    <a href="{{ url_for('harvest', year=harvest.year,
+                                month=harvest.month, day=harvest.day) }}">
+                        {{ harvest | dt }}
+                    </a>
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endblock %}

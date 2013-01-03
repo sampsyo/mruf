@@ -2,7 +2,11 @@
 {% block content %}
     <div class="row">
         <div class="span8">
+            {% if g.state.open %}
             <h2>Place an order</h2>
+            <p>
+                Place an order before {{ g.state.next_harvest | dt(True) }}.
+            </p>
             <form action="" method="POST">
                 <ul>
                 {% for product in products %}
@@ -19,6 +23,9 @@
                     </button>
                 </p>
             </form>
+            {% else %}
+                Orders are currently <strong>closed</strong>.
+            {% endif %}
         </div>
     </div>
 {% endblock %}

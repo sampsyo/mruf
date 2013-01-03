@@ -17,6 +17,12 @@
                     <input type="password" name="password">
                 </p>
                 <p>
+                    <label for="delivery_notes">Delivery</label>
+                    <textarea name="delivery_notes" rows="3">
+                        {{- user.delivery_notes or '' -}}
+                    </textarea>
+                </p>
+                <p>
                     <button type="submit" class="btn btn-primary">
                         Save
                     </button>
