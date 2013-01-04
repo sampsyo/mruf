@@ -8,3 +8,7 @@
 .countfld {
     width: 3em;
 }
+
+.totalLabel {
+    text-align: right !important;
+}
