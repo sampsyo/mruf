@@ -329,10 +329,19 @@ def _order_counts():
 
 def _place_order(user):
     if request.method == 'GET':
-        return render_template('order.html',
-            products=Product.query.filter_by(available=True),
-            user=user
-        )
+        previous_order = None
+        for order in user.orders:
+            if order.harvested == g.state.next_harvest:
+                previous_order = order
+                break
+
+        if previous_order:
+            return render_template('already_ordered.html', order=order)
+        else:
+            return render_template('order.html',
+                products=Product.query.filter_by(available=True),
+                user=user
+            )
 
     # Create a new order.
     order = Order(user)

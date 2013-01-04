@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+<div class="span8">
+
+<h2>Order already placed</h2>
+
+<p>
+    {% if g.admin %}
+        {{ order.customer.name }} has
+    {% else %}
+        You have
+    {% endif %}
+    already placed an order for {{ g.state.next_harvest | dt }}.
+    {% if g.admin %}
+        <a href="{{ url_for('edit_order', order_id=order.id) }}">
+            Edit this order.
+        </a>
+    {% else %}
+        <a href="{{ url_for('receipt', order_id=order.id) }}">
+            View your receipt for that order.
+        </a>
+    {% endif %}
+</p>
+
+</div>
+</div>
+{% endblock %}
