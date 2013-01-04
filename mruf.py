@@ -207,6 +207,24 @@ def all_harvests():
                     .all()
     return [r[0] for r in res]
 
+def administrative(func):
+    """Decorator for pages accessible only to administrators."""
+    def wrapped(*args, **kwargs):
+        if not g.admin:
+            abort(403)
+        return func(*args, **kwargs)
+    wrapped.__name__ = func.__name__
+    return wrapped
+
+def authenticated(func):
+    """Decorator for pages accessible only when logged in."""
+    def wrapped(*args, **kwargs):
+        if g.user is None:
+            abort(403)
+        return func(*args, **kwargs)
+    wrapped.__name__ = func.__name__
+    return wrapped
+
 
 @app.route("/")
 def main():
@@ -254,12 +272,9 @@ def products():
         )
 
 @app.route("/products/<int:product_id>", methods=['POST', 'DELETE'])
+@administrative
 def product(product_id):
-    if not g.admin:
-        abort(403)
-    product = Product.query.filter_by(id=product_id).first()
-    if not product:
-        abort(404)
+    product = Product.query.get_or_404(product_id)
 
     if request.method == 'POST':
         product.name = request.form['name']
@@ -271,10 +286,8 @@ def product(product_id):
 
     return redirect(url_for('products'))
 
+@administrative
 def _show_harvest(dt):
-    if not g.admin:
-        abort(403)
-
     orders = Order.query.filter_by(harvested=dt).all()
     order_ids = [o.id for o in orders]
     # There is almost certainly a real query for this.
@@ -307,9 +320,8 @@ def harvest(year, month, day):
     abort(404)
 
 @app.route("/harvests")
+@administrative
 def harvests():
-    if not g.admin:
-        abort(403)
     return render_template('harvests.html', harvests=all_harvests())
 
 def _order_counts():
@@ -354,27 +366,20 @@ def _place_order(user):
     return redirect(url_for('receipt', order_id=order.id))
 
 @app.route("/order", methods=['GET', 'POST'])
+@authenticated
 def order():
-    if g.user is None:
-        abort(403)
     return _place_order(g.user)
 
 @app.route("/order/<int:user_id>", methods=['GET', 'POST'])
+@administrative
 def order_for(user_id):
-    if not g.admin:
-        abort(403)
-    user = User.query.filter_by(id=user_id).first()
-    if not user:
-        abort(404)
+    user = User.query.get_or_404(user_id)
     return _place_order(user)
 
 @app.route("/orders/<int:order_id>", methods=['GET', 'POST'])
+@administrative
 def edit_order(order_id):
-    if not g.admin:
-        abort(403)
-    order = Order.query.filter_by(id=order_id).first()
-    if not order:
-        abort(404)
+    order = Order.query.get_or_404(order_id)
 
     if request.method == 'POST':
         order.placed = _parse_dt(request.form['placed'])
@@ -393,21 +398,16 @@ def edit_order(order_id):
                            products=Product.query.all())
 
 @app.route("/orders/<int:order_id>/receipt")
+@authenticated
 def receipt(order_id):
-    if g.user is None:
-        abort(403)
-    order = Order.query.filter_by(id=order_id).first()
-    if not order:
-        abort(404)
+    order = Order.query.get_or_404(order_id)
     if order.customer.id != g.user.id and not g.admin:
         abort(403)
     return render_template('receipt.html', order=order)
 
 @app.route("/customers", methods=['GET', 'POST'])
+@administrative
 def customers():
-    if not g.admin:
-        abort(403)
-
     if request.method == 'POST':
         password = _random_string(10)
         user = User(request.form['email'], request.form['name'],
@@ -426,11 +426,10 @@ def customers():
                            action=action)
 
 @app.route("/customer/<int:user_id>", methods=['GET', 'POST'])
+@authenticated
 def customer(user_id):
     user = User.query.filter_by(id=user_id).first()
-    if g.user is None:
-        abort(403)
-    elif g.admin:
+    if g.admin:
         if not user:
             abort(404)
     else:
@@ -458,10 +457,8 @@ def customer(user_id):
         return render_template('customer.html', user=user)
 
 @app.route("/availability", methods=['GET', 'POST'])
+@administrative
 def availability():
-    if not g.admin:
-        abort(403)
-
     if request.method == 'POST':
         # Set harvest date.
         g.state.next_harvest = _parse_dt(request.form['next_harvest'])
@@ -484,10 +481,8 @@ def availability():
     return render_template('availability.html', products=Product.query.all())
 
 @app.route("/admin", methods=['GET', 'POST'])
+@administrative
 def admin():
-    if not g.admin:
-        abort(403)
-
     if request.method == 'POST':
         g.state.closed_message = request.form['closed_message']
         g.state.farm = request.form['farm']
