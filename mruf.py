@@ -240,7 +240,9 @@ def main():
 def login():
     email = request.form['email']
     password = request.form['password']
-    user = User.query.filter_by(email=email).first()
+    user = User.query.filter(
+        db.func.lower(User.email) == email.strip().lower()
+    ).first()
     if user is not None and user.password == _hash_pass(password):
         # Successful login.
         session['userid'] = user.id
