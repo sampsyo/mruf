@@ -310,7 +310,7 @@ def latest_harvest():
     harvests = all_harvests()
     if not harvests:
         abort(404)
-    return _show_harvest(harvests[0])
+    return _show_harvest(harvests[-1])
 
 @app.route("/harvests/<int:year>-<int:month>-<int:day>")
 def harvest(year, month, day):
