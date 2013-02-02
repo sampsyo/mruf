@@ -424,7 +424,8 @@ def customers():
         action = None
 
     return render_template('customers.html',
-                           users=User.query.filter_by(admin=False).all(),
+                           customers=User.query.filter_by(admin=False).all(),
+                           farmers=User.query.filter_by(admin=True).all(),
                            action=action)
 
 @app.route("/customer/<int:user_id>", methods=['GET', 'POST'])
@@ -447,6 +448,11 @@ def customer(user_id):
             user.password = _hash_pass(request.form['password'])
         if request.form.get('delivery_notes'):
             user.delivery_notes = request.form['delivery_notes']
+        if g.admin:
+            if request.form.get('farmer'):
+                user.admin = True
+            else:
+                user.admin = False
 
         db.session.commit()
 

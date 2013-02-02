@@ -9,7 +9,7 @@
                 </div>
             {% endif %}
             <ul>
-            {% for user in users %}
+            {% for user in customers %}
                 <li>
                     <a href="{{ url_for('customer', user_id=user.id)}}">
                         {{ user.name }}
@@ -34,6 +34,17 @@
                     </button>
                 </p>
             </form>
+
+            <h2>Farmers</h2>
+            <ul>
+            {% for user in farmers %}
+                <li>
+                    <a href="{{ url_for('customer', user_id=user.id)}}">
+                        {{ user.name }}
+                    </a>
+                </li>
+            {% endfor %}
+            </ul>
         </div>
     </div>
 {% endblock %}

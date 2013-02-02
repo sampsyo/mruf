@@ -24,6 +24,18 @@
             {{- user.delivery_notes or '' -}}
         </textarea>
     </p>
+    {% if g.admin %}
+    <p>
+        <label class="checkbox inline">
+            <input type="checkbox" name="farmer" value="1"
+                {%- if user.admin -%}
+                    checked="checked"
+                {%- endif -%}
+            >
+            Farmer
+        </label>
+    </p>
+    {% endif %}
     <p>
         <button type="submit" class="btn btn-primary">
             Save
