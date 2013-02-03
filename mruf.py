@@ -22,6 +22,15 @@ app.config.update(
 app.config.from_pyfile('mruf.cfg')
 db = SQLAlchemy(app)
 
+DEFAULT_RECEIPT_BODY = u"""Dear {name},
+
+Thanks for your order at {farm}! You can view your receipt at:
+{receipt_url}
+
+Sincerely,
+
+The {farm} robot"""
+
 
 # http://flask.pocoo.org/snippets/38/
 class MethodRewriteMiddleware(object):
@@ -88,7 +97,7 @@ def send_email(to_addrs, subject, body, cc_addrs=(), bcc_addrs=()):
     return mailgun_send(
         app.config['MAILGUN_API_KEY'],
         app.config['MAILGUN_DOMAIN'],
-        app.config['MAIL_FROM'],
+        g.state.mail_from,
         to_addrs, subject, body, cc_addrs, bcc_addrs,
     )
 
@@ -96,8 +105,8 @@ def send_receipt(order):
     farmer_addrs = [u.email for u in User.query.filter_by(admin=True)]
     send_email(
         [order.customer.email],
-        app.config['RECEIPT_SUBJECT'],
-        app.config['RECEIPT_BODY'].format(
+        g.state.receipt_subject,
+        g.state.receipt_body.format(
             name=order.customer.name,
             receipt_url=url_for('receipt', order_id=order.id, _external=True),
             farm=g.state.farm,
@@ -205,10 +214,18 @@ class State(db.Model):
     closed_message = db.Column(db.UnicodeText())
     farm = db.Column(db.Unicode(128))
 
+    # Email stuff.
+    mail_from = db.Column(db.Unicode(1024))
+    receipt_subject = db.Column(db.Unicode(1024))
+    receipt_body = db.Column(db.UnicodeText())
+
     def __init__(self):
         self.next_harvest = datetime.datetime.now()
         self.closed_message = u'Orders are currently closed.'
         self.farm = u'Farm Name'
+        self.mail_from = u'Farmer <farm@farm.farm>'
+        self.receipt_subject = u'Thanks for your order'
+        self.receipt_body = DEFAULT_RECEIPT_BODY
 
     @property
     def open(self):
@@ -548,6 +565,9 @@ def admin():
     if request.method == 'POST':
         g.state.closed_message = request.form['closed_message']
         g.state.farm = request.form['farm']
+        g.state.mail_from = request.form['mail_from']
+        g.state.receipt_subject = request.form['receipt_subject']
+        g.state.receipt_body = request.form['receipt_body']
         db.session.commit()
 
     return render_template('admin.html')

@@ -16,6 +16,23 @@
             {{- g.state.closed_message -}}
         </textarea>
     </p>
+
+    <h3>Email Stuff</h3>
+    <p>
+        <label for="mail_from">Email "from" address</label>
+        <input type="email" name="mail_from" value="{{ g.state.mail_from }}">
+    </p>
+    <p>
+        <label for="receipt_subject">Receipt email subject</label>
+        <input name="receipt_subject" value="{{ g.state.receipt_subject }}">
+    </p>
+    <p>
+        <label for="receipt_body">Receipt email body</label>
+        <textarea name="receipt_body" rows="4" class="input-block-level">
+            {{- g.state.receipt_body -}}
+        </textarea>
+    </p>
+
     <button class="btn btn-primary" type="submit">
         Save
     </button> 
