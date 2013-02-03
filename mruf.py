@@ -84,12 +84,17 @@ def mailgun_send(apikey, domain, from_addr, to_addrs, subject, body,
         data['bcc'] = ','.join(bcc_addrs)
     return mailgun_request(apikey, '{}/messages'.format(domain), data)
 
-def send_receipt(order):
-    farmer_addrs = [u.email for u in User.query.filter_by(admin=True)]
-    mailgun_send(
+def send_email(to_addrs, subject, body, cc_addrs=(), bcc_addrs=()):
+    return mailgun_send(
         app.config['MAILGUN_API_KEY'],
         app.config['MAILGUN_DOMAIN'],
         app.config['MAIL_FROM'],
+        to_addrs, subject, body, cc_addrs, bcc_addrs,
+    )
+
+def send_receipt(order):
+    farmer_addrs = [u.email for u in User.query.filter_by(admin=True)]
+    send_email(
         [order.customer.email],
         app.config['RECEIPT_SUBJECT'],
         app.config['RECEIPT_BODY'].format(
@@ -410,6 +415,8 @@ def _place_order(user):
     db.session.commit()
 
     # Email the receipt.
+    # Eventually, if possible, this should be moved off the critical
+    # path to a task queue.
     send_receipt(order)
 
     return redirect(url_for('receipt', order_id=order.id))
