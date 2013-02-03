@@ -11,6 +11,7 @@ import datetime
 from parsedatetime import parsedatetime
 import time
 from werkzeug import url_decode
+import requests
 
 
 app = Flask(__name__)
@@ -38,6 +39,8 @@ class MethodRewriteMiddleware(object):
 app.wsgi_app = MethodRewriteMiddleware(app.wsgi_app)
 
 
+# Utilities.
+
 def _hash_pass(password):
     if isinstance(password, unicode):
         password = password.encode('utf8')
@@ -55,6 +58,47 @@ def _parse_dt(s):
 
 def _random_string(length=20, chars=(string.ascii_letters + string.digits)):
     return ''.join(random.choice(chars) for i in range(length))
+
+
+# Email.
+
+def mailgun_request(apikey, path, data, base='https://api.mailgun.net/v2'):
+    req = requests.post(
+        '{}/{}'.format(base, path),
+        data=data,
+        auth=requests.auth.HTTPBasicAuth('api', apikey)
+    )
+    return req.json()
+
+def mailgun_send(apikey, domain, from_addr, to_addrs, subject, body,
+                 cc_addrs=(), bcc_addrs=()):
+    data = {
+        'from': from_addr,
+        'to': ','.join(to_addrs),
+        'subject': subject,
+        'text': body,
+    }
+    if cc_addrs:
+        data['cc'] = ','.join(cc_addrs)
+    if bcc_addrs:
+        data['bcc'] = ','.join(bcc_addrs)
+    return mailgun_request(apikey, '{}/messages'.format(domain), data)
+
+def send_receipt(order):
+    farmer_addrs = [u.email for u in User.query.filter_by(admin=True)]
+    mailgun_send(
+        app.config['MAILGUN_API_KEY'],
+        app.config['MAILGUN_DOMAIN'],
+        app.config['MAIL_FROM'],
+        [order.customer.email],
+        app.config['RECEIPT_SUBJECT'],
+        app.config['RECEIPT_BODY'].format(
+            name=order.customer.name,
+            receipt_url=url_for('receipt', order_id=order.id, _external=True),
+            farm=g.state.farm,
+        ),
+        bcc_addrs=farmer_addrs,
+    )
 
 
 class IntegerDecimal(sqlalchemy.types.TypeDecorator):
@@ -364,6 +408,9 @@ def _place_order(user):
         item = OrderItem(order, product, count)
         db.session.add(item)
     db.session.commit()
+
+    # Email the receipt.
+    send_receipt(order)
 
     return redirect(url_for('receipt', order_id=order.id))
 

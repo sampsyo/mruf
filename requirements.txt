@@ -3,3 +3,4 @@ flask-sqlalchemy
 simple-pbkdf2
 psycopg2
 parsedatetime
+requests
