@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="row">
-<div class="span8">
+<div class="span9">
 
 <h2>Profile</h2>
 
@@ -19,7 +19,10 @@
         <input type="password" name="password">
     </p>
     <p>
-        <label for="delivery_notes">Delivery</label>
+        <label for="delivery_notes">
+            Delivery<br>
+            <span class="muted">{{ config.DELIVERY_HINT }}</span>
+        </label>
         <textarea name="delivery_notes" rows="3">
             {{- user.delivery_notes or '' -}}
         </textarea>
