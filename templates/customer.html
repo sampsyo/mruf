@@ -94,9 +94,28 @@
 {% endwith %}
 
 {% if g.admin %}
+<h2>Actions</h2>
+
 <p><a href="{{ url_for('order_for', user_id=user.id) }}">
     Place an order for {{ user.name }}.
 </a></p>
+
+<p>
+    Credit or debit {{ user.name }}'s account:
+</p>
+<form method="POST" action="{{ url_for('creditdebit', user_id=user.id) }}">
+    <p>
+        <input name="description" type="text"
+           placeholder="Description">
+    </p>
+    <p>
+        <input type="text" name="amount" pattern="^\$?\d+([\.\,]\d{2})?$"
+            placeholder="Amount">
+    </p>
+    <button class="btn btn-primary" type="submit">
+        Add
+    </button>
+</form>
 {% endif %}
 
 </div>

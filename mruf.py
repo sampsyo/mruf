@@ -501,6 +501,21 @@ def order_for(user_id):
     user = User.query.get_or_404(user_id)
     return _place_order(user)
 
+@app.route("/customer/<int:user_id>/creditdebit", methods=['POST'])
+@administrative
+def creditdebit(user_id):
+    user = User.query.get_or_404(user_id)
+
+    txn = CreditDebit(
+        user,
+        _parse_price(request.form['amount']),
+        request.form['description'],
+    )
+    db.session.add(txn)
+    db.session.commit()
+
+    return redirect(url_for('customer', user_id=user.id))
+
 @app.route("/orders/<int:order_id>", methods=['GET', 'POST'])
 @administrative
 def edit_order(order_id):
