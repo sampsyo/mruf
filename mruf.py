@@ -132,6 +132,25 @@ class User(db.Model):
     def __repr__(self):
         return '<User {0}>'.format(self.email)
 
+    @property
+    def account_history(self):
+        """Get a chronologically ordered sequence of Order and
+        CreditDebit objects for this user.
+        """
+        out = list(self.transactions) + list(self.orders) 
+        out.sort(key=lambda o: o.date if isinstance(o, CreditDebit)
+                               else o.placed)
+        return out
+
+    @property
+    def balance(self):
+        bal = Decimal('0.00')
+        for txn in self.transactions:
+            bal += txn.amount
+        for order in self.orders:
+            bal -= order.total
+        return bal
+
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -220,6 +239,21 @@ class State(db.Model):
         if self.next_harvest is None:
             return False
         return self.next_harvest > datetime.datetime.now()
+
+class CreditDebit(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    customer_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    customer = db.relationship(
+        'User',
+        backref=db.backref('transactions', lazy='dynamic'),
+    )
+    amount = db.Column(IntegerDecimal)
+    date = db.Column(db.DateTime)
+
+    def __init__(self, customer, amount):
+        self.customer = customer
+        self.amount = amount
+        self.date = datetime.datetime.now()
 
 
 @app.before_request
