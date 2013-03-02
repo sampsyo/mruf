@@ -36,6 +36,9 @@
                         </a></li>
                         <li><a href="{{ url_for('customer', user_id=g.user.id) }}">
                             Account
+                            <strong>
+                                ({{ g.user.balance | price }})
+                            </strong>
                         </a></li>
                     {% endif %}
                     {% if g.user %}
