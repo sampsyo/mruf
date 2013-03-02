@@ -1,6 +1,6 @@
 from flask import Flask
 from flask import request, session, redirect, url_for, render_template, g
-from flask import abort
+from flask import abort, flash
 from flask.ext.sqlalchemy import SQLAlchemy
 import pbkdf2
 from decimal import Decimal
@@ -303,13 +303,35 @@ def login():
         return redirect(url_for('main'))
     else:
         # Login failed.
-        return render_template('login.html', error='Please try again.')
+        flash('Please try again.', 'error')
+        return render_template('login.html')
 
 @app.route("/logout")
 def logout():
     if 'userid' in session:
         del session['userid']
     return redirect(url_for('main'))
+
+@app.route("/register", methods=['POST'])
+def register():
+    name = request.form['name']
+    email = request.form['email']
+
+    # Send email to farmers.
+    subs = {
+        'name': name,
+        'email': email,
+        'farm': g.state.farm,
+        'url': url_for('customers', _external=True),
+    }
+    send_email(
+        [u.email for u in User.query.filter_by(admin=True)],
+        app.config['REGISTER_SUBJECT'].format(**subs),
+        app.config['REGISTER_BODY'].format(**subs),
+    )
+
+    flash(app.config['REGISTER_SUCCESS'], 'success')
+    return render_template('login.html')
 
 @app.route("/products", methods=['GET', 'POST'])
 def products():

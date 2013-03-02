@@ -2,12 +2,14 @@
 {% block content %}
     <div class="row">
         <div class="span4">
-            <h2>Sign in</h2>
-            {% if error %}
-                <div class="alert">
-                    {{ error }}
+            {% for category, message in
+                    get_flashed_messages(with_categories=True) %}
+                <div class="alert alert-{{category}}">
+                    {{ message }}
                 </div>
-            {% endif %}
+            {% endfor %}
+
+            <h2>Sign in</h2>
             <form class="form-signin" method="POST" action="/login">
                 <input name="email" type="email"
                     class="input-block-level" placeholder="Email address">
@@ -16,7 +18,23 @@
 
                 <button class="btn btn-large btn-primary" type="submit">
                     Sign in
-                </button> 
+                </button>
+            </form>
+
+            <h4>New here?</h4>
+            <p>
+                If you don't have an account yet, fill out this form and we'll
+                set one up for you.
+            </p>
+            <form method="POST" action="/register">
+                <input name="name" type="text"
+                    class="input-block-level" placeholder="Your name">
+                <input name="email" type="email"
+                    class="input-block-level" placeholder="Email address">
+
+                <button class="btn" type="submit">
+                    Register
+                </button>
             </form>
         </div>
     </div>
