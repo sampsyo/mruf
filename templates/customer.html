@@ -61,7 +61,16 @@
                     {% if txn.placed is defined %}
                         {# An order. #}
                         <td>{{ txn.placed | dt }}</td>
-                        <td>Order for {{ txn.harvested | dt }}</td>
+                        <td>
+                            <a href="
+                                {%- if g.admin -%}
+                                    {{ url_for('edit_order', order_id=txn.id) }}
+                                {%- else -%}
+                                    {{ url_for('receipt', order_id=txn.id) }}
+                                {%- endif %}">
+                                Order for {{ txn.harvested | dt }}
+                            </a>
+                        </td>
                         <td>{{ (0 - txn.total) | price }}</td>
                     {% else %}
                         {# A credit/debit. #}
