@@ -15,21 +15,9 @@ import requests
 
 
 app = Flask(__name__)
-app.config.update(
-    ORDER_COUNT_PREFIX=u'order_',
-    AVAILABLE_PREFIX=u'available_',
-)
-app.config.from_pyfile('mruf.cfg')
+app.config.from_pyfile('mruf.base.cfg')
+app.config.from_pyfile('mruf.site.cfg')
 db = SQLAlchemy(app)
-
-DEFAULT_RECEIPT_BODY = u"""Dear {name},
-
-Thanks for your order at {farm}! You can view your receipt at:
-{receipt_url}
-
-Sincerely,
-
-The {farm} robot"""
 
 
 # http://flask.pocoo.org/snippets/38/
@@ -225,7 +213,7 @@ class State(db.Model):
         self.farm = u'Farm Name'
         self.mail_from = u'Farmer <farm@farm.farm>'
         self.receipt_subject = u'Thanks for your order'
-        self.receipt_body = DEFAULT_RECEIPT_BODY
+        self.receipt_body = app.config['DEFAULT_RECEIPT_BODY']
 
     @property
     def open(self):
