@@ -43,25 +43,46 @@
     </p>
 </form>
 
-<h2>Order history</h2>
+<h2>Account history</h2>
 
-<ul class="unstyled">
-{% for order in user.orders %}
-    <li>
-        <a href="
-            {%- if g.admin -%}
-                {{ url_for('edit_order', order_id=order.id) }}
-            {%- else -%}
-                {{ url_for('receipt', order_id=order.id) }}
-            {%- endif %}">
-            {{- order.harvested | dt -}}
-        </a>:
-        {{ order.total | price }}
-    </li>
-{% else %}
-    <li>No orders have been placed.</li>
-{% endfor %}
-</ul>
+{% with transactions = user.account_history %}
+    {% if transactions %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Transaction</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for txn in transactions %}
+                <tr>
+                    {% if txn.placed is defined %}
+                        {# An order. #}
+                        <td>{{ txn.placed | dt }}</td>
+                        <td>Order for {{ txn.harvested | dt }}</td>
+                        <td>{{ (0 - txn.total) | price }}</td>
+                    {% else %}
+                        {# A credit/debit. #}
+                        <td>{{ txn.date | dt }}</td>
+                        <td>{{ txn.description }}</td>
+                        <td>{{ txn.amount | price }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="2" class="totalLabel">Balance</th>
+                    <th>{{ user.balance | price }}</th>
+                </tr>
+            </tfoot>
+        </table>
+    {% else %}
+        <p>No transactions yet.</p>
+    {% endif %}
+{% endwith %}
 
 {% if g.admin %}
 <p><a href="{{ url_for('order_for', user_id=user.id) }}">

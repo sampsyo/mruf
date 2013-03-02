@@ -249,11 +249,13 @@ class CreditDebit(db.Model):
     )
     amount = db.Column(IntegerDecimal)
     date = db.Column(db.DateTime)
+    description = db.Column(db.UnicodeText())
 
-    def __init__(self, customer, amount):
+    def __init__(self, customer, amount, description):
         self.customer = customer
         self.amount = amount
         self.date = datetime.datetime.now()
+        self.description = description
 
 
 @app.before_request
@@ -270,8 +272,14 @@ def _load_globals():
 
 @app.template_filter('price')
 def _price_filter(value):
+    negative = value < 0
+    if negative:
+        value = 0 - value
     value = Decimal(value).quantize(Decimal('1.00'))
-    return u'${0}'.format(value)
+    out = u'${0}'.format(value)
+    if negative:
+        out = u'-' + out
+    return out
 
 @app.template_filter('pennies')
 def _pennies_filter(value):
