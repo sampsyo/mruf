@@ -46,6 +46,8 @@ def _hash_pass(password):
 def _parse_price(s):
     if s.startswith('$'):
         s = s[1:]
+    elif s.startswith('-$'):
+        s = '-' + s[2:]
     return Decimal(s).quantize(Decimal('1.00'))
 
 _calendar = parsedatetime.Calendar()
@@ -503,7 +505,7 @@ def order_for(user_id):
 
 @app.route("/customer/<int:user_id>/creditdebit", methods=['POST'])
 @administrative
-def creditdebit(user_id):
+def new_creditdebit(user_id):
     user = User.query.get_or_404(user_id)
 
     txn = CreditDebit(
@@ -515,6 +517,27 @@ def creditdebit(user_id):
     db.session.commit()
 
     return redirect(url_for('customer', user_id=user.id))
+
+@app.route("/creditdebit/<int:txn_id>",
+           methods=['GET', 'POST', 'DELETE'])
+@administrative
+def creditdebit(txn_id):
+    txn = CreditDebit.query.get_or_404(txn_id)
+
+    if request.method == 'GET':
+        return render_template('creditdebit.html', transaction=txn)
+
+    elif request.method == 'POST':
+        txn.description = request.form['description']
+        txn.amount = _parse_price(request.form['amount'])
+        txn.date = _parse_dt(request.form['date'])
+        db.session.commit()
+        return redirect(url_for('customer', user_id=txn.customer.id))
+
+    elif request.method == 'DELETE':
+        db.session.delete(txn)
+        db.session.commit()
+        return redirect(url_for('customer', user_id=txn.customer.id))
 
 @app.route("/orders/<int:order_id>", methods=['GET', 'POST'])
 @administrative

@@ -75,7 +75,16 @@
                     {% else %}
                         {# A credit/debit. #}
                         <td>{{ txn.date | dt }}</td>
-                        <td>{{ txn.description }}</td>
+                        <td>
+                            {% if g.admin %}
+                            <a href="{{ url_for('creditdebit',
+                                                txn_id=txn.id) }}">
+                            {% endif %}
+                            {{ txn.description }}
+                            {% if g.admin %}
+                            </a>
+                            {% endif %}
+                        </td>
                         <td>{{ txn.amount | price }}</td>
                     {% endif %}
                 </tr>
@@ -103,7 +112,7 @@
 <p>
     Credit or debit {{ user.name }}'s account:
 </p>
-<form method="POST" action="{{ url_for('creditdebit', user_id=user.id) }}">
+<form method="POST" action="{{ url_for('new_creditdebit', user_id=user.id) }}">
     <p>
         <input name="description" type="text"
            placeholder="Description">
