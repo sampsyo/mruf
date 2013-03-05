@@ -344,6 +344,7 @@ def login():
     if user is not None and user.password == _hash_pass(password):
         # Successful login.
         session['userid'] = user.id
+        session.permanent = True
         return redirect(url_for('main'))
     else:
         # Login failed.
@@ -354,6 +355,7 @@ def login():
 def logout():
     if 'userid' in session:
         del session['userid']
+        session.permanent = False
     return redirect(url_for('main'))
 
 @app.route("/register", methods=['POST'])
