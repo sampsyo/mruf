@@ -12,6 +12,8 @@ from parsedatetime import parsedatetime
 import time
 from werkzeug import url_decode
 import requests
+from urlparse import urlparse, urljoin
+import urllib
 
 
 app = Flask(__name__)
@@ -35,6 +37,13 @@ class MethodRewriteMiddleware(object):
         return self.app(environ, start_response)
 app.wsgi_app = MethodRewriteMiddleware(app.wsgi_app)
 
+# http://flask.pocoo.org/snippets/62/
+def is_safe_url(target):
+    ref_url = urlparse(request.host_url)
+    test_url = urlparse(urljoin(request.host_url, target))
+    return test_url.scheme in ('http', 'https') and \
+           ref_url.netloc == test_url.netloc
+
 
 # Utilities.
 
@@ -57,6 +66,13 @@ def _parse_dt(s):
 
 def _random_string(length=20, chars=(string.ascii_letters + string.digits)):
     return ''.join(random.choice(chars) for i in range(length))
+
+def _next_url():
+    if 'next' in request.values:
+        dest = request.values['next']
+        if is_safe_url(dest):
+            return dest
+    return url_for('main')
 
 
 # Email.
@@ -116,6 +132,8 @@ class IntegerDecimal(sqlalchemy.types.TypeDecorator):
     def process_result_value(self, value, dialect):
         return Decimal(value) / self._unitsize
 
+
+# Models.
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -260,6 +278,8 @@ class CreditDebit(db.Model):
         self.description = description
 
 
+# Hooks and view helpers.
+
 @app.before_request
 def _load_globals():
     if 'userid' in session:
@@ -318,11 +338,16 @@ def authenticated(func):
     """Decorator for pages accessible only when logged in."""
     def wrapped(*args, **kwargs):
         if g.user is None:
-            abort(403)
+            return redirect('{}?{}'.format(
+                url_for('main'),
+                urllib.urlencode({'next': request.url}),
+            ))
         return func(*args, **kwargs)
     wrapped.__name__ = func.__name__
     return wrapped
 
+
+# The routes themselves.
 
 @app.route("/")
 def main():
@@ -332,7 +357,7 @@ def main():
         else:
             return redirect(url_for('order'))
     else:
-        return render_template('login.html')
+        return render_template('login.html', next=_next_url())
 
 @app.route("/login", methods=['POST'])
 def login():
@@ -345,7 +370,7 @@ def login():
         # Successful login.
         session['userid'] = user.id
         session.permanent = True
-        return redirect(url_for('main'))
+        return redirect(_next_url())
     else:
         # Login failed.
         flash('Please try again.', 'error')
