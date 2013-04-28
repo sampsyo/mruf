@@ -14,6 +14,7 @@ from werkzeug import url_decode
 import requests
 from urlparse import urlparse, urljoin
 import urllib
+import re
 
 
 app = Flask(__name__)
@@ -120,6 +121,35 @@ def send_receipt(order):
         bcc_addrs=farmer_addrs,
     )
 
+
+# Photos.
+
+def flickr_image_url(apikey, photoid, label,
+                     base='http://api.flickr.com/services/rest/'):
+    req = requests.get(base, params={
+        'method': 'flickr.photos.getSizes',
+        'api_key': apikey,
+        'photo_id': str(photoid),
+        'format': 'json',
+        'nojsoncallback': '1',
+    })
+    sizes = req.json()['sizes']['size']
+    for size in sizes:
+        if size['label'] == label:
+            return size['source']
+
+def thumbnail_url(url):
+    match = re.search(r'flickr\.com/photos/[^/\?]+/(\d+)', url, re.I)
+    if match:
+        return flickr_image_url(
+            app.config['FLICKR_API_KEY'],
+            match.group(1),
+            'Square'
+        )
+    return url
+
+
+# SQLAchemy type.
 
 class IntegerDecimal(sqlalchemy.types.TypeDecorator):
     impl = sqlalchemy.types.Integer
@@ -413,7 +443,7 @@ def products():
             product = Product(
                 request.form['name'],
                 _parse_price(request.form['price']),
-                request.form['photo'],
+                thumbnail_url(request.form['photo']),
             )
             db.session.add(product)
             db.session.commit()
@@ -432,7 +462,7 @@ def product(product_id):
     if request.method == 'POST':
         product.name = request.form['name']
         product.price = _parse_price(request.form['price'])
-        product.photo = request.form['photo']
+        product.photo = thumbnail_url(request.form['photo'])
         db.session.commit()
     elif request.method == 'DELETE':
         db.session.delete(product)
