@@ -9,7 +9,9 @@
     <li class="product">
         <div class="photo">
             {% if product.photo %}
-                <img src="{{ product.photo }}" width="75" height="75">
+                <a href="{{ product.link }}">
+                    <img src="{{ product.photo }}" width="75" height="75">
+                </a>
             {% endif %}
         </div>
         <div class="details">

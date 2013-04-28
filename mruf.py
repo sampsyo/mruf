@@ -146,7 +146,6 @@ def thumbnail_url(url):
             match.group(1),
             'Square'
         )
-    return url
 
 
 # SQLAchemy type.
@@ -256,16 +255,25 @@ class Product(db.Model):
     name = db.Column(db.Unicode(256))
     price = db.Column(IntegerDecimal)
     available = db.Column(db.Boolean)
+    link = db.Column(db.UnicodeText())
     photo = db.Column(db.UnicodeText())
 
-    def __init__(self, name, price, photo):
+    def __init__(self, name, price, link):
         self.name = name
         self.price = price
-        self.photo = photo
+        self.link = link
+        self.infer_photo()
         self.order_by = None
 
     def __repr__(self):
         return '<Product {0}>'.format(self.name)
+
+    def infer_photo(self):
+        """Using this product's link, try to guess a photo URL and set
+        it.
+        """
+        if self.link:
+            self.photo = thumbnail_url(self.link)
 
 class State(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -443,7 +451,7 @@ def products():
             product = Product(
                 request.form['name'],
                 _parse_price(request.form['price']),
-                thumbnail_url(request.form['photo']),
+                request.form['link'],
             )
             db.session.add(product)
             db.session.commit()
@@ -462,7 +470,8 @@ def product(product_id):
     if request.method == 'POST':
         product.name = request.form['name']
         product.price = _parse_price(request.form['price'])
-        product.photo = thumbnail_url(request.form['photo'])
+        product.link = request.form['link']
+        product.infer_photo()
         db.session.commit()
     elif request.method == 'DELETE':
         db.session.delete(product)
