@@ -4,3 +4,4 @@ simple-pbkdf2
 psycopg2
 parsedatetime
 requests
+pytz

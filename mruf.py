@@ -15,6 +15,7 @@ import requests
 from urlparse import urlparse, urljoin
 import urllib
 import re
+import pytz
 
 
 app = Flask(__name__)
@@ -63,7 +64,18 @@ def _parse_price(s):
 _calendar = parsedatetime.Calendar()
 def _parse_dt(s):
     ts, _ = _calendar.parse(s)
-    return datetime.datetime.fromtimestamp(time.mktime(ts))
+    zone = pytz.timezone(app.config['TIMEZONE'])
+    naivedt = datetime.datetime.fromtimestamp(time.mktime(ts))
+    localdt = zone.localize(naivedt)
+    return _normdt(localdt)
+
+def _now():
+    return datetime.datetime.utcnow()
+
+def _normdt(dt):
+    if dt.tzinfo is None:
+        return dt
+    return dt.astimezone(pytz.utc).replace(tzinfo=None)
 
 def _random_string(length=20, chars=(string.ascii_letters + string.digits)):
     return ''.join(random.choice(chars) for i in range(length))
@@ -210,7 +222,7 @@ class Order(db.Model):
 
     def __init__(self, customer):
         self.customer = customer
-        self.placed = datetime.datetime.now()
+        self.placed = _now()
         self.harvested = g.state.next_harvest
 
     def __repr__(self):
@@ -287,7 +299,7 @@ class State(db.Model):
     receipt_body = db.Column(db.UnicodeText())
 
     def __init__(self):
-        self.next_harvest = datetime.datetime.now()
+        self.next_harvest = _now()
         self.closed_message = u'Orders are currently closed.'
         self.farm = u'Farm Name'
         self.mail_from = u'Farmer <farm@farm.farm>'
@@ -298,7 +310,7 @@ class State(db.Model):
     def open(self):
         if self.next_harvest is None:
             return False
-        return self.next_harvest > datetime.datetime.now()
+        return _normdt(self.next_harvest) > _now()
 
 class CreditDebit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -314,7 +326,7 @@ class CreditDebit(db.Model):
     def __init__(self, customer, amount, description):
         self.customer = customer
         self.amount = amount
-        self.date = datetime.datetime.now()
+        self.date = _now()
         self.description = description
 
 
@@ -351,6 +363,11 @@ def _pennies_filter(value):
 def _datetime_filter(value, withtime=False):
     if value is None:
         return ''
+
+    if not value.tzinfo:
+        value = pytz.utc.localize(value)
+    value = value.astimezone(pytz.timezone(app.config['TIMEZONE']))
+
     fmt = '%B %-e, %Y'
     if withtime:
         fmt += ', %-l:%M %p'
@@ -507,7 +524,7 @@ def latest_harvest():
 def harvest(year, month, day):
     target = datetime.date(year, month, day)
     for harvest in all_harvests():
-        app.logger.info('{} {}'.format(harvest.date(), target))
+        app.logger.info('{} {}'.format(harvest, target))
         if harvest.date() == target:
             return _show_harvest(harvest)
     abort(404)
