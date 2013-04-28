@@ -4,7 +4,7 @@
     <li class="orderProduct product" data-price="{{ product.price | pennies }}">
         <div class="photo">
             {% if product.photo %}
-                <img src="{{ product.photo }}">
+                <img src="{{ product.photo }}" width="75" height="75">
             {% else %}
                 &nbsp;
             {% endif %}
