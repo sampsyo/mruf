@@ -7,6 +7,8 @@
     <input type="text" name="price" pattern="^\$?\d+([\.\,]\d{2})?$"
         placeholder="Price" class="pricefld"
         value="{{ '' if product is none else product.price | price }}">
+    <input type="url" name="photo" placeholder="Photo URL"
+        value="{{ product.photo or '' }}">
     <button type="submit" class="btn btn-primary">
         {% if product is none %}
             Add
@@ -28,7 +30,7 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="row">
-<div class="span8">
+<div class="span9">
 
 <h3>Products</h3>
 <ul class="prodlist unstyled">

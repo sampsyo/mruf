@@ -1,17 +1,31 @@
 {% macro orderform(products, order) %}
 <ul class="orderlist unstyled">
 {% for product in products %}
-    <li class="orderProduct" data-price="{{ product.price | pennies }}">
-        <input type="number" class="countfld orderCount"
-            name="{{ config.ORDER_COUNT_PREFIX }}{{ product.id }}"
-            {%- if order and product in order.items_by_product -%}
-                value="{{ order.items_by_product[product].count }}"
-            {%- endif %}>
-            {{ product.name }}: {{ product.price | price }}
+    <li class="orderProduct product" data-price="{{ product.price | pennies }}">
+        <div class="photo">
+            {% if product.photo %}
+                <img src="{{ product.photo }}">
+            {% else %}
+                &nbsp;
+            {% endif %}
+        </div>
+        <div class="details">
+            <strong class="prodname">
+                {{ product.name }}
+            </strong>
+            <span class="price">
+                {{ product.price | price }}
+            </span>
+            <input type="number" class="countfld orderCount"
+                name="{{ config.ORDER_COUNT_PREFIX }}{{ product.id }}"
+                {%- if order and product in order.items_by_product -%}
+                    value="{{ order.items_by_product[product].count }}"
+                {%- endif %}>
+        </div>
     </li>
 {% endfor %}
 </ul>
-<p>
+<p class="orderTotal">
     <strong>Total:</strong>
     <span id="orderTotal">$0.00</span>
 </p>

@@ -12,3 +12,27 @@
 .totalLabel {
     text-align: right !important;
 }
+
+.product {
+    clear: both;
+    margin-bottom: 0.5em;
+    height: 85px;
+}
+.product .photo {
+    float: left;
+    width: 85px;
+    height: 85px;
+}
+.product .details {
+    float: left;
+}
+.product .prodname {
+    font-weight: bold;
+    display: block;
+}
+.product .price {
+    display: block;
+}
+.orderTotal {
+    clear: both;
+}

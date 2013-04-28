@@ -226,10 +226,12 @@ class Product(db.Model):
     name = db.Column(db.Unicode(256))
     price = db.Column(IntegerDecimal)
     available = db.Column(db.Boolean)
+    photo = db.Column(db.UnicodeText())
 
-    def __init__(self, name, price):
+    def __init__(self, name, price, photo):
         self.name = name
         self.price = price
+        self.photo = photo
         self.order_by = None
 
     def __repr__(self):
@@ -408,9 +410,11 @@ def register():
 def products():
     if g.admin:
         if request.method == 'POST':
-            name = request.form['name']
-            price = _parse_price(request.form['price'])
-            product = Product(name, price)
+            product = Product(
+                request.form['name'],
+                _parse_price(request.form['price']),
+                request.form['photo'],
+            )
             db.session.add(product)
             db.session.commit()
         return render_template('products.html', products=Product.query.all())
@@ -428,6 +432,7 @@ def product(product_id):
     if request.method == 'POST':
         product.name = request.form['name']
         product.price = _parse_price(request.form['price'])
+        product.photo = request.form['photo']
         db.session.commit()
     elif request.method == 'DELETE':
         db.session.delete(product)

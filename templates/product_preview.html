@@ -6,8 +6,20 @@
 <h2>What&rsquo;s available this week</h2>
 <ul class="unstyled">
 {% for product in products %}
-    <li>
-        {{ product.name }}: {{ product.price | price }}
+    <li class="product">
+        <div class="photo">
+            {% if product.photo %}
+                <img src="{{ product.photo }}">
+            {% endif %}
+        </div>
+        <div class="details">
+            <strong class="prodname">
+                {{ product.name }}
+            </strong>
+            <span class="price">
+                {{ product.price | price }}
+            </span>
+        </div>
     </li>
 {% endfor %}
 </ul>
