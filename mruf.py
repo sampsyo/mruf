@@ -353,6 +353,25 @@ class CreditDebit(db.Model):
 
 # Hooks and view helpers.
 
+@app.before_first_request
+def db_setup():
+    """Ensure that schema and initial data is present: create tables,
+    add an initial user, and create the state object.
+    """
+    db.create_all()
+    if not State.query.first():
+        db.session.add(State())
+    if not User.query.first():
+        # Create an administrator (farmer) who can create other initial
+        # accounts.
+        db.session.add(User(
+            app.config['INITIAL_USER_EMAIL'],
+            app.config['INITIAL_USER_NAME'],
+            app.config['INITIAL_USER_PASSWORD'],
+            True,
+        ))
+    db.session.commit()
+
 @app.before_request
 def _load_globals():
     if 'userid' in session:
