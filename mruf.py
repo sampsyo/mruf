@@ -16,6 +16,7 @@ from urlparse import urlparse, urljoin
 import urllib
 import re
 import pytz
+import json
 
 
 app = Flask(__name__)
@@ -116,7 +117,7 @@ def send_email(to_addrs, subject, body, cc_addrs=(), bcc_addrs=()):
     return mailgun_send(
         app.config['MAILGUN_API_KEY'],
         app.config['MAILGUN_DOMAIN'],
-        g.state.mail_from,
+        g.state['mail_from'],
         to_addrs, subject, body, cc_addrs, bcc_addrs,
     )
 
@@ -124,11 +125,11 @@ def send_receipt(order):
     farmer_addrs = [u.email for u in User.query.filter_by(admin=True)]
     send_email(
         [order.customer.email],
-        g.state.receipt_subject,
-        g.state.receipt_body.format(
+        g.state['receipt_subject'],
+        g.state['receipt_body'].format(
             name=order.customer.name,
             receipt_url=url_for('receipt', order_id=order.id, _external=True),
-            farm=g.state.farm,
+            farm=g.state['farm'],
         ),
         bcc_addrs=farmer_addrs,
     )
@@ -160,7 +161,7 @@ def thumbnail_url(url):
         )
 
 
-# SQLAchemy type.
+# SQLAchemy types.
 
 class IntegerDecimal(sqlalchemy.types.TypeDecorator):
     impl = sqlalchemy.types.Integer
@@ -172,6 +173,21 @@ class IntegerDecimal(sqlalchemy.types.TypeDecorator):
 
     def process_result_value(self, value, dialect):
         return Decimal(value) / self._unitsize
+
+class JSONEncodedDict(sqlalchemy.types.TypeDecorator):
+    """Represents an immutable structure as a json-encoded string.
+    """
+    impl = sqlalchemy.types.Text
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = json.dumps(value)
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            value = json.loads(value)
+        return value
 
 
 # Models.
@@ -198,7 +214,7 @@ class User(db.Model):
         """Get a chronologically ordered sequence of Order and
         CreditDebit objects for this user.
         """
-        out = list(self.transactions) + list(self.orders) 
+        out = list(self.transactions) + list(self.orders)
         out.sort(key=lambda o: o.date if isinstance(o, CreditDebit)
                                else o.placed)
         return out
@@ -223,7 +239,7 @@ class Order(db.Model):
     def __init__(self, customer):
         self.customer = customer
         self.placed = _now()
-        self.harvested = g.state.next_harvest
+        self.harvested = g.state['next_harvest']
 
     def __repr__(self):
         return '<Order {0} for {1}>'.format(self.id, self.customer.email)
@@ -290,21 +306,26 @@ class Product(db.Model):
 class State(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     next_harvest = db.Column(db.DateTime())
-    closed_message = db.Column(db.UnicodeText())
-    farm = db.Column(db.Unicode(128))
-
-    # Email stuff.
-    mail_from = db.Column(db.Unicode(1024))
-    receipt_subject = db.Column(db.Unicode(1024))
-    receipt_body = db.Column(db.UnicodeText())
+    settings = db.Column(JSONEncodedDict())
 
     def __init__(self):
         self.next_harvest = _now()
-        self.closed_message = u'Orders are currently closed.'
-        self.farm = u'Farm Name'
-        self.mail_from = u'Farmer <farm@farm.farm>'
-        self.receipt_subject = u'Thanks for your order'
-        self.receipt_body = app.config['DEFAULT_RECEIPT_BODY']
+        self.settings = dict(app.config['DEFAULT_SETTINGS'])
+
+    # `settings` is a JSON-encoded immutable dict. This could be made
+    # lazy using SQLAlchemy's mutation tracking; for the moment, it is
+    # eager and therefore probably inefficient.
+
+    def __getitem__(self, key):
+        return self.settings[key]
+
+    def __setitem__(self, key, value):
+        self.update({key: value})
+
+    def update(self, mapping):
+        new_settings = dict(self.settings)
+        new_settings.update(mapping)
+        self.settings = new_settings
 
     @property
     def open(self):
@@ -449,7 +470,7 @@ def register():
     subs = {
         'name': name,
         'email': email,
-        'farm': g.state.farm,
+        'farm': g.state['farm'],
         'url': url_for('customers', _external=True),
     }
     send_email(
@@ -741,11 +762,13 @@ def availability():
 @administrative
 def admin():
     if request.method == 'POST':
-        g.state.closed_message = request.form['closed_message']
-        g.state.farm = request.form['farm']
-        g.state.mail_from = request.form['mail_from']
-        g.state.receipt_subject = request.form['receipt_subject']
-        g.state.receipt_body = request.form['receipt_body']
+        g.state.update({
+            'closed_message': request.form['closed_message'],
+            'farm': request.form['farm'],
+            'mail_from': request.form['mail_from'],
+            'receipt_subject': request.form['receipt_subject'],
+            'receipt_body': request.form['receipt_body'],
+        })
         db.session.commit()
 
     return render_template('admin.html')
