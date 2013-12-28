@@ -65,7 +65,7 @@ def _parse_price(s):
 _calendar = parsedatetime.Calendar()
 def _parse_dt(s):
     ts, _ = _calendar.parse(s)
-    zone = pytz.timezone(app.config['TIMEZONE'])
+    zone = pytz.timezone(g.state['timezone'])
     naivedt = datetime.datetime.fromtimestamp(time.mktime(ts))
     localdt = zone.localize(naivedt)
     return _normdt(localdt)
@@ -409,7 +409,7 @@ def _datetime_filter(value, withtime=False):
 
     if not value.tzinfo:
         value = pytz.utc.localize(value)
-    value = value.astimezone(pytz.timezone(app.config['TIMEZONE']))
+    value = value.astimezone(pytz.timezone(g.state['timezone']))
 
     fmt = '%B %-e, %Y'
     if withtime:
@@ -497,11 +497,11 @@ def register():
     }
     send_email(
         [u.email for u in User.query.filter_by(admin=True)],
-        app.config['REGISTER_SUBJECT'].format(**subs),
-        app.config['REGISTER_BODY'].format(**subs),
+        g.state['register_subject'].format(**subs),
+        g.state['register_body'].format(**subs),
     )
 
-    flash(app.config['REGISTER_SUCCESS'], 'success')
+    flash(g.state['register_success'], 'success')
     return render_template('login.html')
 
 @app.route("/products", methods=['GET', 'POST'])
