@@ -784,13 +784,10 @@ def availability():
 @administrative
 def admin():
     if request.method == 'POST':
-        g.state.update({
-            'closed_message': request.form['closed_message'],
-            'farm': request.form['farm'],
-            'mail_from': request.form['mail_from'],
-            'receipt_subject': request.form['receipt_subject'],
-            'receipt_body': request.form['receipt_body'],
-        })
+        values = {}
+        for key in app.config['ADMIN_SETTINGS']:
+            values[key] = request.form[key]
+        g.state.update(values)
         db.session.commit()
 
     return render_template('admin.html')
