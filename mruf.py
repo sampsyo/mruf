@@ -760,8 +760,9 @@ def customer(user_id):
 @administrative
 def availability():
     if request.method == 'POST':
-        # Set harvest date.
+        # Set harvest date & message.
         g.state.next_harvest = _parse_dt(request.form['next_harvest'])
+        g.state['order_message'] = request.form['order_message'].strip()
 
         # Gather products to mark as available.
         available_ids = []
@@ -770,7 +771,7 @@ def availability():
                 available_ids.append(
                     int(key[len(app.config['AVAILABLE_PREFIX']):])
                 )
-        
+
         # Clear all flags and set specific ones.
         Product.query.update({
             'available': Product.id.in_(available_ids)

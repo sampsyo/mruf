@@ -17,6 +17,16 @@
                 <input type="text" name="next_harvest"
                     value="{{ g.state.next_harvest | dt(True) }}">
 
+                <p>
+                    <label for="order_message">
+                        Message on the order form page:
+                    </label>
+                    <textarea name="order_message" rows="3"
+                        class="input-block-level">
+                        {{- g.state.order_message -}}
+                    </textarea>
+                </p>
+
                 <h3>Available Products</h3>
                 <ul>
                 {% for product in products %}

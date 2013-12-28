@@ -13,6 +13,13 @@
         Place an order before {{ g.state.next_harvest | dt(True) }}.
     </p>
 {% endif %}
+
+{% if g.state.order_message %}
+<div class="alert alert-info">
+    {{ g.state.order_message }}
+</div>
+{% endif %}
+
 <form action="" method="POST">
 {{ macros.orderform(products, None) }}
 <p class="orderSubmit">
