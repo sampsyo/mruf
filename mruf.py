@@ -516,10 +516,11 @@ def products():
             db.session.add(product)
             db.session.commit()
         return render_template('products.html', products=Product.query.all())
-    
+
     else:
-        return render_template('product_preview.html',
-            products=Product.query.filter_by(available=True).all()
+        return render_template(
+            'product_preview.html',
+            products=Product.query.filter_by(available=True).all(),
         )
 
 @app.route("/products/<int:product_id>", methods=['POST', 'DELETE'])
@@ -603,9 +604,10 @@ def _place_order(user):
         if previous_order:
             return render_template('already_ordered.html', order=order)
         else:
-            return render_template('order.html',
+            return render_template(
+                'order.html',
                 products=Product.query.filter_by(available=True),
-                user=user
+                user=user,
             )
 
     # Create a new order.
