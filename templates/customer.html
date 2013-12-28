@@ -21,7 +21,7 @@
     <p>
         <label for="delivery_notes">
             Delivery<br>
-            <span class="muted">{{ config.DELIVERY_HINT }}</span>
+            <span class="muted">{{ g.state.delivery_hint }}</span>
         </label>
         <textarea name="delivery_notes" rows="3">
             {{- user.delivery_notes or '' -}}

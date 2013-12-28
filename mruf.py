@@ -317,7 +317,10 @@ class State(db.Model):
     # eager and therefore probably inefficient.
 
     def __getitem__(self, key):
-        return self.settings[key]
+        if key in self.settings:
+            return self.settings[key]
+        else:
+            return app.config['DEFAULT_SETTINGS'][key]
 
     def __setitem__(self, key, value):
         self.update({key: value})
