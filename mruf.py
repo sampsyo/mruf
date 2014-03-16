@@ -8,7 +8,7 @@ import sqlalchemy
 import string
 import random
 import datetime
-from parsedatetime import parsedatetime
+import parsedatetime
 import time
 from werkzeug import url_decode
 import requests
