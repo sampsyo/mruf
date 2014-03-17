@@ -239,7 +239,7 @@ class Order(db.Model):
     def __init__(self, customer):
         self.customer = customer
         self.placed = _now()
-        self.harvested = g.state['next_harvest']
+        self.harvested = g.state.next_harvest
 
     def __repr__(self):
         return '<Order {0} for {1}>'.format(self.id, self.customer.email)
