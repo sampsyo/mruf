@@ -70,3 +70,44 @@ browser-legible tracebacks when exceptions arise.
 
 The site configuration can also override any of the default options enumerated
 in `mruf.base.cfg`.
+
+
+Architecture
+------------
+
+### State Object
+
+Most of the site's configuration is stored in a single-row database table
+called `state`. This makes it easy for farmers to change configuration using
+the "administration" page on the site.
+
+Settings are accessed by reading `g.state[key]`. Let's break this down:
+
+* `g` is Flask's [global context][]. It's populated by our `_load_globals`
+  function before handling each request.
+* `g.state` represents the only row in the `state` table. It's an
+  [SQLAlchemy][] model object.
+* Item access (`g.state[foo]`) accesses a JSON-serialized dictionary in the
+  row. If the key is missing from the dictionary, it falls back to defaults
+  provided as `DEFAULT_SETTINGS` in `mruf.base.cfg`.
+
+[SQLAlchemy]: http://www.sqlalchemy.org/
+[global context]: http://flask.pocoo.org/docs/api/#application-globals
+
+### The Next Harvest
+
+Different products are available at different times. To account for this, the
+farmer sets a *next harvest time* indicating the window during which customers
+can order a particular set of products. This timestamp is stored in the global
+`g.next_harvest`.
+
+Every order, when placed, records the next-harvest timestamp at the time it was
+placed. This helps group together all orders placed during a given window.
+Crucially, this lets farmers view all the products that were ordered during a
+given cycle. A group of orders with the same next-harvest timestamp are called
+a *harvest*.
+
+The `all_harvest` function recovers all the unique timestamps for which orders
+were placed. These can then be used to fetch the group of orders associated
+with each timestamp. Most usefully, you can get the latest harvest by looking
+up the last timestamp returned by this function (as `latest_harvest` does).

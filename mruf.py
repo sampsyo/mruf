@@ -19,14 +19,23 @@ import pytz
 import json
 
 
+# The Flask application and its configuration.
+
 app = Flask(__name__)
 app.config.from_pyfile('mruf.base.cfg')
 app.config.from_pyfile('mruf.site.cfg')
 db = SQLAlchemy(app)
 
 
+# Useful Flask snippets.
+
 # http://flask.pocoo.org/snippets/38/
 class MethodRewriteMiddleware(object):
+    """Middleware emulating non-GET/POST HTTP request methods from
+    browsers that don't support them for Ajax calls. The frontend sets a
+    special key in a POST request indicating which method it wants to
+    use. We use this for DELETE requests.
+    """
     def __init__(self, app):
         self.app = app
 
@@ -40,8 +49,11 @@ class MethodRewriteMiddleware(object):
         return self.app(environ, start_response)
 app.wsgi_app = MethodRewriteMiddleware(app.wsgi_app)
 
+
 # http://flask.pocoo.org/snippets/62/
 def is_safe_url(target):
+    """Ensure that a URL is safe for redirection.
+    """
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and \
@@ -55,6 +67,7 @@ def _hash_pass(password):
         password = password.encode('utf8')
     return pbkdf2.pbkdf2_hex(password, app.config['SALT'])
 
+
 def _parse_price(s):
     if s.startswith('$'):
         s = s[1:]
@@ -62,24 +75,38 @@ def _parse_price(s):
         s = '-' + s[2:]
     return Decimal(s).quantize(Decimal('1.00'))
 
+
 _calendar = parsedatetime.Calendar()
 def _parse_dt(s):
+    """Parse a (potentially human-written) string indicating a date and
+    time to a Python `datetime` object.
+    """
     ts, _ = _calendar.parse(s)
     zone = pytz.timezone(g.state['timezone'])
     naivedt = datetime.datetime.fromtimestamp(time.mktime(ts))
     localdt = zone.localize(naivedt)
     return _normdt(localdt)
 
+
 def _now():
+    """Get a `datetime` object reflecting the current time.
+    """
     return datetime.datetime.utcnow()
 
+
 def _normdt(dt):
+    """Normalize a `datetime` object's timezone. This lets us force all
+    timestamps used internally to UTC, avoiding lots of weird timezone
+    issues.
+    """
     if dt.tzinfo is None:
         return dt
     return dt.astimezone(pytz.utc).replace(tzinfo=None)
 
+
 def _random_string(length=20, chars=(string.ascii_letters + string.digits)):
     return ''.join(random.choice(chars) for i in range(length))
+
 
 def _next_url():
     if 'next' in request.values:
@@ -99,6 +126,7 @@ def mailgun_request(apikey, path, data, base='https://api.mailgun.net/v2'):
     )
     return req.json()
 
+
 def mailgun_send(apikey, domain, from_addr, to_addrs, subject, body,
                  cc_addrs=(), bcc_addrs=()):
     data = {
@@ -113,7 +141,10 @@ def mailgun_send(apikey, domain, from_addr, to_addrs, subject, body,
         data['bcc'] = ','.join(bcc_addrs)
     return mailgun_request(apikey, '{}/messages'.format(domain), data)
 
+
 def send_email(to_addrs, subject, body, cc_addrs=(), bcc_addrs=()):
+    """Send an email.
+    """
     return mailgun_send(
         app.config['MAILGUN_API_KEY'],
         app.config['MAILGUN_DOMAIN'],
@@ -121,7 +152,10 @@ def send_email(to_addrs, subject, body, cc_addrs=(), bcc_addrs=()):
         to_addrs, subject, body, cc_addrs, bcc_addrs,
     )
 
+
 def send_receipt(order):
+    """Send an order receipt email using templates from the database.
+    """
     farmer_addrs = [u.email for u in User.query.filter_by(admin=True)]
     send_email(
         [order.customer.email],
@@ -151,6 +185,7 @@ def flickr_image_url(apikey, photoid, label,
         if size['label'] == label:
             return size['source']
 
+
 def thumbnail_url(url):
     match = re.search(r'flickr\.com/photos/[^/\?]+/(\d+)', url, re.I)
     if match:
@@ -174,6 +209,7 @@ class IntegerDecimal(sqlalchemy.types.TypeDecorator):
     def process_result_value(self, value, dialect):
         return Decimal(value) / self._unitsize
 
+
 class JSONEncodedDict(sqlalchemy.types.TypeDecorator):
     """Represents an immutable structure as a json-encoded string.
     """
@@ -193,6 +229,9 @@ class JSONEncodedDict(sqlalchemy.types.TypeDecorator):
 # Models.
 
 class User(db.Model):
+    """A User can either be a customer or a farmer (farmers have
+    administrative access).
+    """
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.Unicode(256), unique=True)
     name = db.Column(db.Unicode(512))
@@ -228,7 +267,11 @@ class User(db.Model):
             bal -= order.total
         return bal
 
+
 class Order(db.Model):
+    """An `Order` is a collection of `OrderItem` instances along with a
+    timestamps and a reference to the user who placed the order.
+    """
     id = db.Column(db.Integer, primary_key=True)
     customer_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     customer = db.relationship('User',
@@ -246,6 +289,8 @@ class Order(db.Model):
 
     @property
     def total(self):
+        """The total cost of this order.
+        """
         total = Decimal('0.00')
         for item in self.items:
             total += item.cost
@@ -253,12 +298,23 @@ class Order(db.Model):
 
     @property
     def items_by_product(self):
+        """A dictionary mapping `Product` instances to `OrderItem`
+        instances for that product.
+        """
         out = {}
         for item in self.items:
             out[item.product] = item
         return out
 
+
 class OrderItem(db.Model):
+    """A single "row" of an `Order`, representing a customer's request
+    for one particular product.
+
+    Includes the quantity as well as the price at the time the order was
+    placed. Caching the price in this way lets the price change later without
+    affecting the total for orders placed in the past.
+    """
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('order.id'))
     order = db.relationship('Order', backref='items')
@@ -278,7 +334,10 @@ class OrderItem(db.Model):
     def cost(self):
         return self.count * self.price
 
+
 class Product(db.Model):
+    """An item for sale in the store.
+    """
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode(256))
     price = db.Column(IntegerDecimal)
@@ -303,7 +362,14 @@ class Product(db.Model):
         if self.link:
             self.photo = thumbnail_url(self.link)
 
+
 class State(db.Model):
+    """A singleton model reflecting the site's settings.
+
+    Most settings are packed in a JSON-encoded dictionary. These values
+    are read and written via item access (`state[key]`). The site's next
+    harvest date is the exception.
+    """
     id = db.Column(db.Integer, primary_key=True)
     next_harvest = db.Column(db.DateTime())
     settings = db.Column(JSONEncodedDict())
@@ -336,7 +402,14 @@ class State(db.Model):
             return False
         return _normdt(self.next_harvest) > _now()
 
+
 class CreditDebit(db.Model):
+    """An addition or subtraction a customer's account.
+
+    A credit/debit is *not* tied to an order---those are charged
+    separately. These are used when a customer makes a deposit into
+    their account, for example, and are created explicitly by farmers.
+    """
     id = db.Column(db.Integer, primary_key=True)
     customer_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     customer = db.relationship(
@@ -354,7 +427,7 @@ class CreditDebit(db.Model):
         self.description = description
 
 
-# Hooks and view helpers.
+# Hooks.
 
 @app.before_first_request
 def db_setup():
@@ -375,8 +448,12 @@ def db_setup():
         ))
     db.session.commit()
 
+
 @app.before_request
 def _load_globals():
+    """Get the session's user and the global state object for the
+    request.
+    """
     if 'userid' in session:
         g.user = User.query.filter_by(id=session['userid']).first()
         if g.user is not None:
@@ -387,8 +464,14 @@ def _load_globals():
 
     g.state = State.query.first()
 
+
+
+# Jinja2 template elements.
+
 @app.template_filter('price')
 def _price_filter(value):
+    """A template filter for formatting prices in dollars and cents.
+    """
     negative = value < 0
     if negative:
         value = 0 - value
@@ -398,12 +481,21 @@ def _price_filter(value):
         out = u'-' + out
     return out
 
+
 @app.template_filter('pennies')
 def _pennies_filter(value):
+    """A template filter that formats a price as an integer number of
+    pennies. This is useful for plumbing when communicating prices to
+    the JavaScript frontend without resorting to floating-point.
+    """
     return unicode(int(value * 100))
+
 
 @app.template_filter('dt')
 def _datetime_filter(value, withtime=False):
+    """Format a `datetime` object as a human-readable string. `withtime`
+    indicates whether this should be just a day or a day with a time.
+    """
     if value is None:
         return ''
 
@@ -416,6 +508,9 @@ def _datetime_filter(value, withtime=False):
         fmt += ', %-l:%M %p'
     return value.strftime(fmt)
 
+
+# Data access helper.
+
 def all_harvests():
     """Get a list of harvest dates for which orders have been placed.
     """
@@ -424,6 +519,9 @@ def all_harvests():
                     .order_by(Order.harvested) \
                     .all()
     return [r[0] for r in res]
+
+
+# Authentication decorators.
 
 def administrative(func):
     """Decorator for pages accessible only to administrators."""
@@ -451,6 +549,9 @@ def authenticated(func):
 
 @app.route("/")
 def main():
+    """The home page. Either show the login form or redirect to a
+    relevant front page for the logged-in user.
+    """
     if g.user:
         if g.user.admin:
             return redirect(url_for('availability'))
@@ -459,8 +560,12 @@ def main():
     else:
         return render_template('login.html', next=_next_url())
 
+
 @app.route("/login", methods=['POST'])
 def login():
+    """Handle a login form request. Show the login page on failure or
+    redirect to an appropriate destination on success.
+    """
     email = request.form['email']
     password = request.form['password']
     user = User.query.filter(
@@ -476,15 +581,24 @@ def login():
         flash('Please try again.', 'error')
         return render_template('login.html')
 
+
 @app.route("/logout")
 def logout():
+    """Handle a logout request and redirect home.
+    """
     if 'userid' in session:
         del session['userid']
         session.permanent = False
     return redirect(url_for('main'))
 
+
 @app.route("/register", methods=['POST'])
 def register():
+    """Handle an account registration request.
+
+    At the moment, this just sends an email to the farmers asking them
+    to set up an account.
+    """
     name = request.form['name']
     email = request.form['email']
 
@@ -504,8 +618,11 @@ def register():
     flash(g.state['register_success'], 'success')
     return render_template('login.html')
 
+
 @app.route("/products", methods=['GET', 'POST'])
 def products():
+    """Show or add to the list of available products.
+    """
     if g.admin:
         if request.method == 'POST':
             product = Product(
@@ -523,9 +640,12 @@ def products():
             products=Product.query.filter_by(available=True).all(),
         )
 
+
 @app.route("/products/<int:product_id>", methods=['POST', 'DELETE'])
 @administrative
 def product(product_id):
+    """Update or delete an existing product.
+    """
     product = Product.query.get_or_404(product_id)
 
     if request.method == 'POST':
@@ -540,8 +660,12 @@ def product(product_id):
 
     return redirect(url_for('products'))
 
+
 @administrative
 def _show_harvest(dt):
+    """Helper: render a page depicting the products harvested at a
+    particular timestamp.
+    """
     orders = Order.query.filter_by(harvested=dt).all()
     order_ids = [o.id for o in orders]
     # There is almost certainly a real query for this.
@@ -557,15 +681,21 @@ def _show_harvest(dt):
                            product_info=product_info,
                            harvestdt=dt)
 
+
 @app.route("/harvests/latest")
 def latest_harvest():
+    """Show the products harvested most recently.
+    """
     harvests = all_harvests()
     if not harvests:
         abort(404)
     return _show_harvest(harvests[-1])
 
+
 @app.route("/harvests/<int:year>-<int:month>-<int:day>")
 def harvest(year, month, day):
+    """Show the products harvested on a particular day.
+    """
     target = datetime.date(year, month, day)
     for harvest in all_harvests():
         app.logger.info('{} {}'.format(harvest, target))
@@ -573,10 +703,14 @@ def harvest(year, month, day):
             return _show_harvest(harvest)
     abort(404)
 
+
 @app.route("/harvests")
 @administrative
 def harvests():
+    """Show a list of harvest dates with links to details.
+    """
     return render_template('harvests.html', harvests=all_harvests())
+
 
 def _order_counts():
     """Get a dictionary mapping Products to integer counts from the
@@ -593,7 +727,12 @@ def _order_counts():
                 out[product] = int(value)
     return out
 
+
 def _place_order(user):
+    """Display or handle an order form.
+
+    Used for both customer- and farmer-initiated orders.
+    """
     if request.method == 'GET':
         previous_order = None
         for order in user.orders:
@@ -625,20 +764,30 @@ def _place_order(user):
 
     return redirect(url_for('receipt', order_id=order.id))
 
+
 @app.route("/order", methods=['GET', 'POST'])
 @authenticated
 def order():
+    """An order form for the logged-in user.
+    """
     return _place_order(g.user)
+
 
 @app.route("/order/<int:user_id>", methods=['GET', 'POST'])
 @administrative
 def order_for(user_id):
+    """An order form on behalf of a different user (initiated by a
+    farmer).
+    """
     user = User.query.get_or_404(user_id)
     return _place_order(user)
+
 
 @app.route("/customer/<int:user_id>/creditdebit", methods=['POST'])
 @administrative
 def new_creditdebit(user_id):
+    """Add a credit/debit transaction for some user.
+    """
     user = User.query.get_or_404(user_id)
 
     txn = CreditDebit(
@@ -651,10 +800,13 @@ def new_creditdebit(user_id):
 
     return redirect(url_for('customer', user_id=user.id))
 
+
 @app.route("/creditdebit/<int:txn_id>",
            methods=['GET', 'POST', 'DELETE'])
 @administrative
 def creditdebit(txn_id):
+    """Show, edit, or delete an existing credit/debit transaction.
+    """
     txn = CreditDebit.query.get_or_404(txn_id)
 
     if request.method == 'GET':
@@ -672,9 +824,12 @@ def creditdebit(txn_id):
         db.session.commit()
         return redirect(url_for('customer', user_id=txn.customer.id))
 
+
 @app.route("/orders/<int:order_id>", methods=['GET', 'POST'])
 @administrative
 def edit_order(order_id):
+    """Show a form to edit an existing order.
+    """
     order = Order.query.get_or_404(order_id)
 
     if request.method == 'POST':
@@ -693,17 +848,23 @@ def edit_order(order_id):
                            order=order,
                            products=Product.query.all())
 
+
 @app.route("/orders/<int:order_id>/receipt")
 @authenticated
 def receipt(order_id):
+    """Show the receipt for an existing order.
+    """
     order = Order.query.get_or_404(order_id)
     if order.customer.id != g.user.id and not g.admin:
         abort(403)
     return render_template('receipt.html', order=order)
 
+
 @app.route("/customers", methods=['GET', 'POST'])
 @administrative
 def customers():
+    """Show a list of users.
+    """
     if request.method == 'POST':
         password = _random_string(10)
         user = User(request.form['email'], request.form['name'],
@@ -722,9 +883,12 @@ def customers():
                            farmers=User.query.filter_by(admin=True).all(),
                            action=action)
 
+
 @app.route("/customer/<int:user_id>", methods=['GET', 'POST'])
 @authenticated
 def customer(user_id):
+    """Show or update an existing user's profile.
+    """
     user = User.query.filter_by(id=user_id).first()
     if g.admin:
         if not user:
@@ -758,9 +922,13 @@ def customer(user_id):
     else:
         return render_template('customer.html', user=user)
 
+
 @app.route("/availability", methods=['GET', 'POST'])
 @administrative
 def availability():
+    """Show a list of products or update those products' "available"
+    flag.
+    """
     if request.method == 'POST':
         # Set harvest date & message.
         g.state.next_harvest = _parse_dt(request.form['next_harvest'])
@@ -783,9 +951,12 @@ def availability():
 
     return render_template('availability.html', products=Product.query.all())
 
+
 @app.route("/admin", methods=['GET', 'POST'])
 @administrative
 def admin():
+    """Show or update the site's settings.
+    """
     if request.method == 'POST':
         values = {}
         for key in app.config['ADMIN_SETTINGS']:
