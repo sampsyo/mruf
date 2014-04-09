@@ -12,7 +12,7 @@
             {% for user in customers %}
                 <li>
                     <a href="{{ url_for('customer', user_id=user.id)}}">
-                        {{ user.name }}
+                        {{ user.name }}   ({{ user.balance }})
                     </a>
                 </li>
             {% endfor %}

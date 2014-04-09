@@ -21,7 +21,7 @@
     </p>
     <p>
         <label for="delivery_notes">
-            Delivery<br>
+            Pickup Location<br>
             <span class="muted">{{ g.state.delivery_hint }}</span>
         </label>
         <textarea name="delivery_notes" rows="3">
@@ -122,7 +122,7 @@
            placeholder="Description">
     </p>
     <p>
-        <input type="text" name="amount" pattern="^\$?\d+([\.\,]\d{2})?$"
+        <input type="text" name="amount" pattern="^\-?\$?\d+([\.\,]\d{2})?$"
             placeholder="Amount">
     </p>
     <button class="btn btn-primary" type="submit">
