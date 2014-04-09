@@ -879,8 +879,8 @@ def customers():
         action = None
 
     return render_template('customers.html',
-                           customers=User.query.filter_by(admin=False).all(),
-                           farmers=User.query.filter_by(admin=True).all(),
+                           customers=User.query.filter_by(admin=False).order_by(User.name).all(),
+                           farmers=User.query.filter_by(admin=True).order_by(User.name).all(),
                            action=action)
 
 
