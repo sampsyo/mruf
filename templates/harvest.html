@@ -44,6 +44,11 @@ for {{ harvestdt | dt }}.
     </li>
 {% endfor %}
 
+<h2>Email addresses for all Customers with orders</h2>
+{% for order in orders %}
+    {{- order.customer.email -}}
+{% endfor %}
+
 </div>
 </div>
 {% endblock %}

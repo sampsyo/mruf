@@ -24,9 +24,22 @@
             Pickup Location<br>
             <span class="muted">{{ g.state.delivery_hint }}</span>
         </label>
-        <textarea name="delivery_notes" rows="3">
-            {{- user.delivery_notes or '' -}}
-        </textarea>
+        <label class="checkbox inline">
+            <input type="radio" name="pickup" value="Wallingford"
+                {%- if user.delivery_notes != "Crown Hill" -%}
+                    checked="checked"
+                {%- endif -%}
+            >
+            Wallingford - Saturdays
+        </label>
+        <label class="checkbox inline">
+            <input type="radio" name="pickup" value="Crown Hill"
+                {%- if user.delivery_notes == "Crown Hill" -%}
+                    checked="checked"
+                {%- endif -%}
+            >
+            Crown Hill - Wednesdays
+        </label>
     </p>
     {% if g.admin %}
     <p>

@@ -22,6 +22,26 @@
 
 <form action="" method="POST">
 {{ macros.orderform(products, None) }}
+<div>
+    <h2>Please select your pickup location</h2>
+    <label class="checkbox inline">
+            <input type="radio" name="pickup" value="Wallingford"
+                {%- if user.delivery_notes != "Crown Hill" -%}
+                    checked="checked"
+                {%- endif -%}
+            >
+            Wallingford - Saturdays
+        </label>
+        <label class="checkbox inline">
+            <input type="radio" name="pickup" value="Crown Hill"
+                {%- if user.delivery_notes == "Crown Hill" -%}
+                    checked="checked"
+                {%- endif -%}
+            >
+            Crown Hill - Wednesdays
+        </label>
+</div>
+    <p></p>
 <p class="orderSubmit">
     <button type="submit" class="btn btn-primary">
         Place order

@@ -770,6 +770,10 @@ def _place_order(user):
 def order():
     """An order form for the logged-in user.
     """
+    if request.method == 'POST':
+        if request.form.get('pickup'):
+            g.user.delivery_notes = request.form.get('pickup')
+
     return _place_order(g.user)
 
 
@@ -780,6 +784,10 @@ def order_for(user_id):
     farmer).
     """
     user = User.query.get_or_404(user_id)
+    if request.method == 'POST':
+        if request.form.get('pickup'):
+            user.delivery_notes = request.form.get('pickup')
+
     return _place_order(user)
 
 
@@ -906,6 +914,9 @@ def customer(user_id):
             user.password = _hash_pass(request.form['password'])
         if request.form.get('delivery_notes'):
             user.delivery_notes = request.form['delivery_notes']
+        if request.form.get('pickup'):
+            user.delivery_notes = request.form.get('pickup')
+
         if g.admin:
             if request.form.get('farmer'):
                 user.admin = True
