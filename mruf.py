@@ -172,7 +172,7 @@ def send_receipt(order):
 # Photos.
 
 def flickr_image_url(apikey, photoid, label,
-                     base='http://api.flickr.com/services/rest/'):
+                     base='https://api.flickr.com/services/rest/'):
     req = requests.get(base, params={
         'method': 'flickr.photos.getSizes',
         'api_key': apikey,
