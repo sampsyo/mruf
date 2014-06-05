@@ -52,6 +52,16 @@
             Farmer
         </label>
     </p>
+    <p>
+        <label class="checkbox inline">
+            <input type="checkbox" name="fruit" value="1"
+                {%- if user.fruit -%}
+                    checked="checked"
+                {%- endif -%}
+            >
+            Fruit Share
+        </label>
+    </p>
     {% endif %}
     <p>
         <button type="submit" class="btn btn-primary">

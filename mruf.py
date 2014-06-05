@@ -240,7 +240,7 @@ class SettingsMixin(object):
         self.settings = dict(self.settings_default)
 
     def __getitem__(self, key):
-        if key in self.settings:
+        if self.settings is not None and key in self.settings:
             return self.settings[key]
         else:
             return self.settings_default.get(key)
@@ -249,7 +249,10 @@ class SettingsMixin(object):
         self.update({key: value})
 
     def update(self, mapping):
-        new_settings = dict(self.settings)
+        if self.settings is None:
+            new_settings = {}
+        else:
+            new_settings = dict(self.settings)
         new_settings.update(mapping)
         self.settings = new_settings
 
@@ -264,8 +267,12 @@ class User(db.Model, SettingsMixin):
     password = db.Column(db.String(256))
     admin = db.Column(db.Boolean)
     delivery_notes = db.Column(db.UnicodeText)
+    settings_default = {
+        'fruit': False,
+    }
 
     def __init__(self, email, name, password, admin):
+        SettingsMixin.__init__(self)
         self.email = email
         self.name = name
         self.password = _hash_pass(password)
@@ -930,10 +937,8 @@ def customer(user_id):
             user.delivery_notes = request.form.get('pickup')
 
         if g.admin:
-            if request.form.get('farmer'):
-                user.admin = True
-            else:
-                user.admin = False
+            user.admin = bool(request.form.get('farmer'))
+            user['fruit'] = bool(request.form.get('fruit'))
 
         db.session.commit()
 
