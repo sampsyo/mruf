@@ -363,30 +363,22 @@ class Product(db.Model):
             self.photo = thumbnail_url(self.link)
 
 
-class State(db.Model):
-    """A singleton model reflecting the site's settings.
-
-    Most settings are packed in a JSON-encoded dictionary. These values
-    are read and written via item access (`state[key]`). The site's next
-    harvest date is the exception.
+class SettingsMixin(object):
+    """A mixin class for SQLAlchemy Model classes that provides a
+    JSON-encoded dictionary of free-form *settings*. These values are
+    accessed by subscripting the model object.
     """
-    id = db.Column(db.Integer, primary_key=True)
-    next_harvest = db.Column(db.DateTime())
     settings = db.Column(JSONEncodedDict())
+    settings_default = {}
 
     def __init__(self):
-        self.next_harvest = _now()
-        self.settings = dict(app.config['DEFAULT_SETTINGS'])
-
-    # `settings` is a JSON-encoded immutable dict. This could be made
-    # lazy using SQLAlchemy's mutation tracking; for the moment, it is
-    # eager and therefore probably inefficient.
+        self.settings = dict(self.settings_default)
 
     def __getitem__(self, key):
         if key in self.settings:
             return self.settings[key]
         else:
-            return app.config['DEFAULT_SETTINGS'][key]
+            return self.settings_default[key]
 
     def __setitem__(self, key, value):
         self.update({key: value})
@@ -395,6 +387,26 @@ class State(db.Model):
         new_settings = dict(self.settings)
         new_settings.update(mapping)
         self.settings = new_settings
+
+
+class State(db.Model, SettingsMixin):
+    """A singleton model reflecting the site's settings.
+
+    Most settings are packed in a JSON-encoded dictionary. These values
+    are read and written via item access (`state[key]`). The site's next
+    harvest date is the exception.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    next_harvest = db.Column(db.DateTime())
+    settings_default = app.config['DEFAULT_SETTINGS']
+
+    def __init__(self):
+        SettingsMixin.__init__(self)
+        self.next_harvest = _now()
+
+    # `settings` is a JSON-encoded immutable dict. This could be made
+    # lazy using SQLAlchemy's mutation tracking; for the moment, it is
+    # eager and therefore probably inefficient.
 
     @property
     def open(self):
