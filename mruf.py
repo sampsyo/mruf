@@ -228,7 +228,33 @@ class JSONEncodedDict(sqlalchemy.types.TypeDecorator):
 
 # Models.
 
-class User(db.Model):
+class SettingsMixin(object):
+    """A mixin class for SQLAlchemy Model classes that provides a
+    JSON-encoded dictionary of free-form *settings*. These values are
+    accessed by subscripting the model object.
+    """
+    settings = db.Column(JSONEncodedDict())
+    settings_default = {}
+
+    def __init__(self):
+        self.settings = dict(self.settings_default)
+
+    def __getitem__(self, key):
+        if key in self.settings:
+            return self.settings[key]
+        else:
+            return self.settings_default.get(key)
+
+    def __setitem__(self, key, value):
+        self.update({key: value})
+
+    def update(self, mapping):
+        new_settings = dict(self.settings)
+        new_settings.update(mapping)
+        self.settings = new_settings
+
+
+class User(db.Model, SettingsMixin):
     """A User can either be a customer or a farmer (farmers have
     administrative access).
     """
@@ -361,32 +387,6 @@ class Product(db.Model):
         """
         if self.link:
             self.photo = thumbnail_url(self.link)
-
-
-class SettingsMixin(object):
-    """A mixin class for SQLAlchemy Model classes that provides a
-    JSON-encoded dictionary of free-form *settings*. These values are
-    accessed by subscripting the model object.
-    """
-    settings = db.Column(JSONEncodedDict())
-    settings_default = {}
-
-    def __init__(self):
-        self.settings = dict(self.settings_default)
-
-    def __getitem__(self, key):
-        if key in self.settings:
-            return self.settings[key]
-        else:
-            return self.settings_default[key]
-
-    def __setitem__(self, key, value):
-        self.update({key: value})
-
-    def update(self, mapping):
-        new_settings = dict(self.settings)
-        new_settings.update(mapping)
-        self.settings = new_settings
 
 
 class State(db.Model, SettingsMixin):
