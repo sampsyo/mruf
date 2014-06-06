@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+<div class="span9">
+
+<h2>Fruit verification</h2>
+
+    Amount {{ amount }} was credit/debited from the following Fruit Share Customers:
+
+    <ul>
+    {% for user in users %}
+        <li>
+            {{user.name}}
+        </li>
+    {% endfor %}
+    </ul>
+
+</div>
+</div>
+{% endblock %}

@@ -809,6 +809,25 @@ def order_for(user_id):
 
     return _place_order(user)
 
+@app.route("/fruit", methods=['POST'])
+@administrative
+def fruit():
+    """Add a credit/debit transaction for all users with fruit shares.
+    """
+    fruitUsers = []
+
+    for user in User.query.filter_by(admin=False).all():
+        if user['fruit']:
+            fruitUsers.append(user)
+            txn = CreditDebit(
+                user,
+                _parse_price(request.form['amount']),
+                request.form['description'],
+            )
+            db.session.add(txn)
+            db.session.commit()
+
+    return render_template('fruit.html', amount=request.form['amount'], users = fruitUsers)
 
 @app.route("/customer/<int:user_id>/creditdebit", methods=['POST'])
 @administrative
