@@ -257,7 +257,14 @@ class SettingsMixin(object):
         self.settings = new_settings
 
 
-class User(db.Model, SettingsMixin):
+class AutoincrementMixin(object):
+    """A mixin for SQLAlchemy models that makes SQLite id columns
+    auto-increment (i.e., avoid resuing unique ids).
+    """
+    __table_args__ = {'sqlite_autoincrement': True}
+
+
+class User(db.Model, SettingsMixin, AutoincrementMixin):
     """A User can either be a customer or a farmer (farmers have
     administrative access).
     """
@@ -301,7 +308,7 @@ class User(db.Model, SettingsMixin):
         return bal
 
 
-class Order(db.Model):
+class Order(db.Model, AutoincrementMixin):
     """An `Order` is a collection of `OrderItem` instances along with a
     timestamps and a reference to the user who placed the order.
     """
@@ -340,7 +347,7 @@ class Order(db.Model):
         return out
 
 
-class OrderItem(db.Model):
+class OrderItem(db.Model, AutoincrementMixin):
     """A single "row" of an `Order`, representing a customer's request
     for one particular product.
 
@@ -368,7 +375,7 @@ class OrderItem(db.Model):
         return self.count * self.price
 
 
-class Product(db.Model):
+class Product(db.Model, AutoincrementMixin):
     """An item for sale in the store.
     """
     id = db.Column(db.Integer, primary_key=True)
@@ -396,7 +403,7 @@ class Product(db.Model):
             self.photo = thumbnail_url(self.link)
 
 
-class State(db.Model, SettingsMixin):
+class State(db.Model, SettingsMixin, AutoincrementMixin):
     """A singleton model reflecting the site's settings.
 
     Most settings are packed in a JSON-encoded dictionary. These values
@@ -422,7 +429,7 @@ class State(db.Model, SettingsMixin):
         return _normdt(self.next_harvest) > _now()
 
 
-class CreditDebit(db.Model):
+class CreditDebit(db.Model, AutoincrementMixin):
     """An addition or subtraction a customer's account.
 
     A credit/debit is *not* tied to an order---those are charged
