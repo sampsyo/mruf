@@ -930,7 +930,7 @@ def customers():
                            action=action)
 
 
-@app.route("/customer/<int:user_id>", methods=['GET', 'POST'])
+@app.route("/customer/<int:user_id>", methods=['GET', 'POST', 'DELETE'])
 @authenticated
 def customer(user_id):
     """Show or update an existing user's profile.
@@ -965,6 +965,13 @@ def customer(user_id):
             return redirect(url_for('customers'))
         else:
             return redirect(url_for('main'))
+
+    elif request.method == 'DELETE':
+        if not g.admin:
+            abort(403)
+        db.session.delete(user)
+        db.session.commit()
+        return redirect(url_for('customers'))
 
     else:
         return render_template('customer.html', user=user)
