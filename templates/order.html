@@ -27,7 +27,7 @@
     {% for shortname, longname in g.state.location_map.iteritems() %}
     <label class="checkbox inline">
         <input type="radio" name="pickup" value="{{ shortname }}"
-            {%- if user.delivery_notes == "{{ shortname }}" -%}
+            {%- if user.delivery_notes == shortname -%}
                 checked="checked"
             {%- endif -%}
         >
