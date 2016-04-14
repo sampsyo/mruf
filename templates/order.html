@@ -24,22 +24,16 @@
 {{ macros.orderform(products, None) }}
 <div>
     <h2>Please select your pickup location</h2>
+    {% for shortname, longname in g.state.location_map.iteritems() %}
     <label class="checkbox inline">
-            <input type="radio" name="pickup" value="Wallingford"
-                {%- if user.delivery_notes != "Crown Hill" -%}
-                    checked="checked"
-                {%- endif -%}
-            >
-            Wallingford - Saturdays
-        </label>
-        <label class="checkbox inline">
-            <input type="radio" name="pickup" value="Crown Hill"
-                {%- if user.delivery_notes == "Crown Hill" -%}
-                    checked="checked"
-                {%- endif -%}
-            >
-            Crown Hill - Wednesdays
-        </label>
+        <input type="radio" name="pickup" value="{{ shortname }}"
+            {%- if user.delivery_notes == "{{ shortname }}" -%}
+                checked="checked"
+            {%- endif -%}
+        >
+        {{ longname }}
+    </label>
+    {% endfor %}
 </div>
     <p></p>
 <p class="orderSubmit">

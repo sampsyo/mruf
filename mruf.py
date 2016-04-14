@@ -17,6 +17,7 @@ import urllib
 import re
 import pytz
 import json
+from collections import OrderedDict
 
 
 # The Flask application and its configuration.
@@ -420,6 +421,17 @@ class State(db.Model, SettingsMixin):
         if self.next_harvest is None:
             return False
         return _normdt(self.next_harvest) > _now()
+
+    @property
+    def location_map(self):
+        """An OrderedDict that maps short location names to long names.
+        """
+        out = OrderedDict()
+        for line in self['locations'].strip().split('\n'):
+            line = line.strip()
+            short = re.sub(r'\([^\)]*\)', '', line).strip()
+            out[short] = line
+        return out
 
 
 class CreditDebit(db.Model):

@@ -37,9 +37,17 @@
         </textarea>
     </p>
 
+    <h3>Ordering</h3>
+    <p>
+        <label for="locations">Pickup locations (one per line)</label>
+        <textarea name="locations" rows="4" class="input-block-level">
+            {{- g.state.locations -}}
+        </textarea>
+    </p>
+
     <button class="btn btn-primary" type="submit">
         Save
-    </button> 
+    </button>
 </form>
 
 </div>
