@@ -890,12 +890,17 @@ def creditdebit(txn_id):
         return redirect(url_for('customer', user_id=txn.customer.id))
 
 
-@app.route("/orders/<int:order_id>", methods=['GET', 'POST'])
+@app.route("/orders/<int:order_id>", methods=['GET', 'POST', 'DELETE'])
 @administrative
 def edit_order(order_id):
     """Show a form to edit an existing order.
     """
     order = Order.query.get_or_404(order_id)
+
+    if request.method == 'DELETE':
+        db.session.delete(order)
+        db.session.commit()
+        return redirect(url_for('harvests'))
 
     if request.method == 'POST':
         order.placed = _parse_dt(request.form['placed'])

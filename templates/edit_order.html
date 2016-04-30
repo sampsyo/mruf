@@ -31,6 +31,16 @@
     </p>
 </form>
 
+<p>
+    Delete this order from {{ order.customer.name }}
+    <strong>permanently</strong>:
+</p>
+<form method="DELETE" action="">
+    <button type="submit" class="btn btn-danger">
+        Delete
+    </button>
+</form>
+
 </div>
 </div>
 {% endblock %}
