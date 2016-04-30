@@ -17,6 +17,7 @@ import urllib
 import re
 import pytz
 import json
+from collections import OrderedDict
 
 
 # The Flask application and its configuration.
@@ -427,6 +428,17 @@ class State(db.Model, SettingsMixin, AutoincrementMixin):
         if self.next_harvest is None:
             return False
         return _normdt(self.next_harvest) > _now()
+
+    @property
+    def location_map(self):
+        """An OrderedDict that maps short location names to long names.
+        """
+        out = OrderedDict()
+        for line in self['locations'].strip().split('\n'):
+            line = line.strip()
+            short = re.sub(r'\([^\)]*\)', '', line).strip()
+            out[short] = line
+        return out
 
 
 class CreditDebit(db.Model, AutoincrementMixin):
@@ -937,7 +949,7 @@ def customers():
                            action=action)
 
 
-@app.route("/customer/<int:user_id>", methods=['GET', 'POST'])
+@app.route("/customer/<int:user_id>", methods=['GET', 'POST', 'DELETE'])
 @authenticated
 def customer(user_id):
     """Show or update an existing user's profile.
@@ -972,6 +984,13 @@ def customer(user_id):
             return redirect(url_for('customers'))
         else:
             return redirect(url_for('main'))
+
+    elif request.method == 'DELETE':
+        if not g.admin:
+            abort(403)
+        db.session.delete(user)
+        db.session.commit()
+        return redirect(url_for('customers'))
 
     else:
         return render_template('customer.html', user=user)

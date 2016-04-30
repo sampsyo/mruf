@@ -24,22 +24,16 @@
             Pickup Location<br>
             <span class="muted">{{ g.state.delivery_hint }}</span>
         </label>
+        {% for shortname, longname in g.state.location_map.iteritems() %}
         <label class="checkbox inline">
-            <input type="radio" name="pickup" value="Wallingford"
-                {%- if user.delivery_notes != "Crown Hill" -%}
+            <input type="radio" name="pickup" value="{{ shortname }}"
+                {%- if user.delivery_notes == shortname -%}
                     checked="checked"
                 {%- endif -%}
             >
-            Wallingford - Saturdays
+            {{ longname }}
         </label>
-        <label class="checkbox inline">
-            <input type="radio" name="pickup" value="Crown Hill"
-                {%- if user.delivery_notes == "Crown Hill" -%}
-                    checked="checked"
-                {%- endif -%}
-            >
-            Crown Hill - Wednesdays
-        </label>
+        {% endfor %}
     </p>
     {% if g.admin %}
     <p>
@@ -150,6 +144,15 @@
     </p>
     <button class="btn btn-primary" type="submit">
         Add
+    </button>
+</form>
+
+<p>
+    Delete {{ user.name }}'s account <strong>permanently</strong>:
+</p>
+<form method="DELETE" action="">
+    <button type="submit" class="btn btn-danger">
+        Delete
     </button>
 </form>
 {% endif %}
