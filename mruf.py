@@ -24,7 +24,8 @@ from collections import OrderedDict
 
 app = Flask(__name__)
 app.config.from_pyfile('mruf.base.cfg')
-app.config.from_pyfile('mruf.site.cfg')
+app.config.from_pyfile('mruf.site.cfg', silent=True)
+app.config.from_envvar('MRUF_CFG', silent=True)
 db = SQLAlchemy(app)
 
 
