@@ -531,6 +531,11 @@ def _pennies_filter(value):
     return unicode(int(value * 100))
 
 
+def _unpad(s):
+    """Remove padding zeroes from a formatted date string."""
+    return re.sub(r'(^|\s)0+', r'\1', s)
+
+
 @app.template_filter('dt')
 def _datetime_filter(value, withtime=False):
     """Format a `datetime` object as a human-readable string. `withtime`
@@ -543,10 +548,10 @@ def _datetime_filter(value, withtime=False):
         value = pytz.utc.localize(value)
     value = value.astimezone(pytz.timezone(g.state['timezone']))
 
-    fmt = '%B %-e, %Y'
+    fmt = '%B %d, %Y'
     if withtime:
-        fmt += ', %-l:%M %p'
-    return value.strftime(fmt)
+        fmt += ', %I:%M %p'
+    return _unpad(value.strftime(fmt))
 
 
 # Data access helper.
