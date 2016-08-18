@@ -59,7 +59,7 @@ def is_safe_url(target):
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and \
-           ref_url.netloc == test_url.netloc
+        ref_url.netloc == test_url.netloc
 
 
 # Utilities.
@@ -79,6 +79,8 @@ def _parse_price(s):
 
 
 _calendar = parsedatetime.Calendar()
+
+
 def _parse_dt(s):
     """Parse a (potentially human-written) string indicating a date and
     time to a Python `datetime` object.
@@ -297,7 +299,7 @@ class User(db.Model, SettingsMixin, AutoincrementMixin):
         """
         out = list(self.transactions) + list(self.orders)
         out.sort(key=lambda o: o.date if isinstance(o, CreditDebit)
-                               else o.placed)
+                 else o.placed)
         return out
 
     @property
@@ -504,7 +506,6 @@ def _load_globals():
     g.state = State.query.first()
 
 
-
 # Jinja2 template elements.
 
 @app.template_filter('price')
@@ -554,7 +555,7 @@ def all_harvests():
     """Get a list of harvest dates for which orders have been placed.
     """
     res = db.session.query(sqlalchemy.distinct(Order.harvested)) \
-                    .filter(Order.harvested != None) \
+                    .filter(Order.harvested is not None) \
                     .order_by(Order.harvested) \
                     .all()
     return [r[0] for r in res]
@@ -570,6 +571,7 @@ def administrative(func):
         return func(*args, **kwargs)
     wrapped.__name__ = func.__name__
     return wrapped
+
 
 def authenticated(func):
     """Decorator for pages accessible only when logged in."""
@@ -829,6 +831,7 @@ def order_for(user_id):
 
     return _place_order(user)
 
+
 @app.route("/fruit", methods=['POST'])
 @administrative
 def fruit():
@@ -847,7 +850,9 @@ def fruit():
             db.session.add(txn)
             db.session.commit()
 
-    return render_template('fruit.html', amount=request.form['amount'], users = fruitUsers)
+    return render_template('fruit.html', amount=request.form['amount'],
+                           users=fruitUsers)
+
 
 @app.route("/customer/<int:user_id>/creditdebit", methods=['POST'])
 @administrative
@@ -949,10 +954,12 @@ def customers():
     else:
         action = None
 
-    return render_template('customers.html',
-                           customers=User.query.filter_by(admin=False).order_by(User.name).all(),
-                           farmers=User.query.filter_by(admin=True).order_by(User.name).all(),
-                           action=action)
+    return render_template(
+        'customers.html',
+        customers=User.query.filter_by(admin=False).order_by(User.name).all(),
+        farmers=User.query.filter_by(admin=True).order_by(User.name).all(),
+        action=action,
+    )
 
 
 @app.route("/customer/<int:user_id>", methods=['GET', 'POST', 'DELETE'])
