@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="row">
-        <div class="span8">
+        <div class="col">
             <form action="" method="POST">
                 <h3>Next Harvest</h3>
-                <p>
+                <div class="form-group">
                     Orders are currently
                     <strong>
                         {%- if g.state.open -%}
@@ -13,25 +13,26 @@
                             closed
                         {%- endif -%}
                     </strong>.
-                </p>
-                <input type="text" name="next_harvest"
+                </div>
+                <input type="text" name="next_harvest" class="form-control"
                     value="{{ g.state.next_harvest | dt(True) }}">
 
-                <p>
+                <div class="form-group">
                     <label for="order_message">
                         Message on the order form page:
                     </label>
                     <textarea name="order_message" rows="3"
-                        class="input-block-level">
+                        class="form-control">
                         {{- g.state.order_message -}}
                     </textarea>
-                </p>
+                </div>
 
                 <h3>Available Products</h3>
                 <ul>
                 {% for product in products %}
                 <li><label class="checkbox">
                     <input type="checkbox"
+                        class="form-control"
                         name="{{ config.AVAILABLE_PREFIX }}{{ product.id }}"
                         {% if product.available %}
                             checked="checked"

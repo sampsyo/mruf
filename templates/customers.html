@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="row">
-        <div class="span8">
+        <div class="col">
             <h2>Customers</h2>
             {% if action %}
                 <div class="alert alert-success">
@@ -20,19 +20,17 @@
 
             <h2>Add a new customer</h2>
             <form action="" method="POST">
-                <p>
+                <div class="form-group">
                     <label for="name">Name</label>
-                    <input type="text" name="name">
-                </p>
-                <p>
+                    <input type="text" name="name" class="form-control">
+                </div>
+                <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" name="email">
-                </p>
-                <p>
-                    <button type="submit" class="btn btn-primary">
-                        Add
-                    </button>
-                </p>
+                    <input type="email" name="email" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    Add
+                </button>
             </form>
 
             <h2>Farmers</h2>
@@ -51,14 +49,17 @@
                 Credit or debit accounts of all customers with fruit share:
                 </p>
                 <form method="POST" action="{{ url_for('fruit') }}">
-                    <p>
+                    <div class="form-group">
                         <input name="description" type="text"
+                            class="form-control"
                             value="Fruit Share">
-                    </p>
-                    <p>
-                        <input type="text" name="amount" pattern="^\-?\$?\d+([\.\,]\d{2})?$"
+                    </div>
+                    <div class="form-group">
+                        <input type="text" name="amount"
+                            pattern="^\-?\$?\d+([\.\,]\d{2})?$"
+                            class="form-control"
                             placeholder="Amount">
-                    </p>
+                    </div>
                     <button class="btn btn-primary" type="submit">
                         Add
                     </button>
