@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="row">
-        <div class="span4">
+        <div class="col">
             {% for category, message in
                     get_flashed_messages(with_categories=True) %}
                 <div class="alert alert-{{category}}">
@@ -11,14 +11,20 @@
 
             <h2>Sign in</h2>
             <form class="form-signin" method="POST" action="/login">
-                <input name="email" type="email"
-                    class="input-block-level" placeholder="Email address">
-                <input name="password" type="password"
-                    class="input-block-level" placeholder="Password">
-                <input name="next" type="hidden"
-                    value="{{ next }}">
+                <div class="form-group">
+                    <input name="email" type="email"
+                        class="input-block-level" placeholder="Email address">
+                </div>
+                <div class="form-group">
+                    <input name="password" type="password"
+                        class="input-block-level" placeholder="Password">
+                </div>
+                <div class="form-group">
+                    <input name="next" type="hidden"
+                        value="{{ next }}">
+                </div>
 
-                <button class="btn btn-large btn-primary" type="submit">
+                <button class="btn btn-primary" type="submit">
                     Sign in
                 </button>
             </form>
@@ -29,10 +35,14 @@
                 set one up for you.
             </p>
             <form method="POST" action="/register">
-                <input name="name" type="text"
-                    class="input-block-level" placeholder="Your name">
-                <input name="email" type="email"
-                    class="input-block-level" placeholder="Email address">
+                <div class="form-group">
+                    <input name="name" type="text"
+                        class="input-block-level" placeholder="Your name">
+                </div>
+                <div class="form-group">
+                    <input name="email" type="email"
+                        class="input-block-level" placeholder="Email address">
+                </div>
 
                 <button class="btn" type="submit">
                     Register
