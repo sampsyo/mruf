@@ -1,49 +1,52 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="row">
-<div class="span8">
+<div class="col">
 
 <h2>Settings</h2>
 
 <form method="POST" action="">
-    <p>
+    <div class="form-group">
         <label for="farm">Farm name</label>
-        <input name="farm" value="{{ g.state.farm }}">
-    </p>
-    <p>
+        <input class="form-control" name="farm" value="{{ g.state.farm }}">
+    </div>
+    <div class="form-group">
         <label for="closed_message">Message when orders are closed</label>
-        <textarea name="closed_message" rows="4" class="input-block-level">
+        <textarea name="closed_message" rows="4" class="form-control">
             {{- g.state.closed_message -}}
         </textarea>
-    </p>
-    <p>
+    </div>
+    <div class="form-group">
         <label for="home_link">Homepage link</label>
-        <input type="url" name="home_link" value="{{ g.state.home_link }}">
-    </p>
+        <input class="form-control" type="url" name="home_link"
+            value="{{ g.state.home_link }}">
+    </div>
 
     <h3>Email Stuff</h3>
-    <p>
+    <div class="form-group">
         <label for="mail_from">Email "from" address</label>
-        <input type="email" name="mail_from" value="{{ g.state.mail_from }}">
-    </p>
-    <p>
+        <input class="form-control" type="email" name="mail_from"
+            value="{{ g.state.mail_from }}">
+    </div>
+    <div class="form-group">
         <label for="receipt_subject">Receipt email subject</label>
-        <input name="receipt_subject" value="{{ g.state.receipt_subject }}">
-    </p>
-    <p>
+        <input class="form-control" name="receipt_subject"
+            value="{{ g.state.receipt_subject }}">
+    </div>
+    <div class="form-group">
         <label for="receipt_body">Receipt email body</label>
-        <textarea name="receipt_body" rows="4" class="input-block-level">
+        <textarea name="receipt_body" rows="4" class="form-control">
             {{- g.state.receipt_body -}}
         </textarea>
-    </p>
+    </div>
 
     <h3>Ordering</h3>
-    <p>
+    <div class="form-group">
         <label for="locations">Pickup locations (one per line)</label>
-        <textarea name="locations" rows="4" class="input-block-level">
+        <textarea name="locations" rows="4" class="form-control">
             {{- g.state.locations -}}
         </textarea>
-    </p>
+    </div>
 
     <button class="btn btn-primary" type="submit">
         Save

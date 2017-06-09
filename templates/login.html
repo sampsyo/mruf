@@ -13,16 +13,14 @@
             <form class="form-signin" method="POST" action="/login">
                 <div class="form-group">
                     <input name="email" type="email"
-                        class="input-block-level" placeholder="Email address">
+                        class="form-control" placeholder="Email address">
                 </div>
                 <div class="form-group">
                     <input name="password" type="password"
-                        class="input-block-level" placeholder="Password">
+                        class="form-control" placeholder="Password">
                 </div>
-                <div class="form-group">
-                    <input name="next" type="hidden"
-                        value="{{ next }}">
-                </div>
+                <input name="next" type="hidden"
+                    value="{{ next }}">
 
                 <button class="btn btn-primary" type="submit">
                     Sign in
@@ -37,11 +35,11 @@
             <form method="POST" action="/register">
                 <div class="form-group">
                     <input name="name" type="text"
-                        class="input-block-level" placeholder="Your name">
+                        class="form-control" placeholder="Your name">
                 </div>
                 <div class="form-group">
                     <input name="email" type="email"
-                        class="input-block-level" placeholder="Email address">
+                        class="form-control" placeholder="Email address">
                 </div>
 
                 <button class="btn" type="submit">
