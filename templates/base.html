@@ -12,54 +12,73 @@
         {% endblock %}
     </head>
     <body>
-        <div class="navbar">
-            <div class="navbar-inner">
-                <a class="brand" href="{{ g.state.home_link }}">
-                    {{ g.state.farm }}
-                </a>
-                <ul class="nav">
-                    {% if g.admin %}
-                        <li><a href="{{ url_for('availability') }}">
-                            Availability
-                        </a></li>
-                        <li><a href="{{ url_for('products') }}">
-                            Products
-                        </a></li>
-                        <li><a href="{{ url_for('latest_harvest') }}">
-                            Harvest List
-                        </a></li>
-                        <li><a href="{{ url_for('customers') }}">
-                            Customers
-                        </a></li>
-                        <li><a href="{{ url_for('admin') }}">
-                            Admin
-                        </a></li>
-                    {% elif g.user %}
-                        <li><a href="{{ url_for('order') }}">
-                            Place Order
-                        </a></li>
-                        <li><a href="{{ url_for('customer', user_id=g.user.id) }}">
-                            Account
-                            <strong>
-                                (Balance: {{ g.user.balance | price }})
-                            </strong>
-                        </a></li>
-                    {% endif %}
-                    {% if g.user %}
-                        <li><a href="{{ url_for('logout') }}">
-                            Sign Out
-                        </a></li>
-                    {% else %}
-                        <li><a href="{{ url_for('main') }}">
-                            Sign In
-                        </a></li>
-                        <li><a href="{{ url_for('products') }}">
-                            What&rsquo;s Available
-                        </a></li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
+        <nav class="navbar navbar-light navbar-toggleable-md bg-faded">
+            <a class="navbar-brand" href="{{ g.state.home_link }}">
+                {{ g.state.farm }}
+            </a>
+            <ul class="navbar-nav mr-auto">
+                {% if g.admin %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('availability') }}">
+                        Availability
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('products') }}">
+                        Products
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('latest_harvest') }}">
+                        Harvest List
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('customers') }}">
+                        Customers
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('admin') }}">
+                        Admin
+                    </a>
+                </li>
+                {% elif g.user %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('order') }}">
+                        Place Order
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                        href="{{ url_for('customer', user_id=g.user.id) }}">
+                        Account
+                        <strong>
+                            (Balance: {{ g.user.balance | price }})
+                        </strong>
+                    </a>
+                </li>
+                {% endif %}
+                {% if g.user %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('logout') }}">
+                        Sign Out
+                    </a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main') }}">
+                        Sign In
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('products') }}">
+                        What&rsquo;s Available
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
 
         <div class="container">
             {% block content %}
@@ -71,7 +90,7 @@
             {% endblock %}
         </div>
 
-        <script src="/static/jquery-1.8.3.min.js"></script>
+        <script src="/static/jquery-3.1.1.slim.min.js"></script>
         <script src="/static/bootstrap.min.js"></script>
         <script src="/static/mruf.js"></script>
     </body>
