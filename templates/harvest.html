@@ -44,6 +44,23 @@ for {{ harvestdt | dt }}.
     </li>
 {% endfor %}
 
+<h2>Products</h2>
+<ul>
+{% for product, items, total in product_info %}
+    <li>
+        {{ product.name }}: {{ total }}
+        <ul>
+            {% for item in items %}
+                <li>
+                    {{ item.order.customer.name }}:
+                    {{ item.count }}
+                </li>
+            {% endfor %}
+        </ul>
+    </li>
+{% endfor %}
+</ul>
+
 <h2>Customers</h2>
 <ul class="unstyled">
 {% for order in orders %}
