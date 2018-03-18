@@ -678,12 +678,15 @@ def products():
             )
             db.session.add(product)
             db.session.commit()
-        return render_template('products.html', products=Product.query.all())
+        products = Product.query.order_by(Product.name).all()
+        return render_template('products.html', products=products)
 
     else:
+        products = Product.query.filter_by(available=True). \
+            order_by(Product.name).all()
         return render_template(
             'product_preview.html',
-            products=Product.query.filter_by(available=True).all(),
+            products=products,
         )
 
 
@@ -930,9 +933,10 @@ def edit_order(order_id):
                 db.session.add(item)
         db.session.commit()
 
+    products = Product.query.order_by(Product.name).all()
     return render_template('edit_order.html',
                            order=order,
-                           products=Product.query.all())
+                           products=products)
 
 
 @app.route("/orders/<int:order_id>/receipt")
@@ -1045,7 +1049,8 @@ def availability():
 
         db.session.commit()
 
-    return render_template('availability.html', products=Product.query.all())
+    products = Product.query.order_by(Product.name).all()
+    return render_template('availability.html', products=products)
 
 
 @app.route("/admin", methods=['GET', 'POST'])
