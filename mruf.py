@@ -18,6 +18,8 @@ import re
 import pytz
 import json
 from collections import OrderedDict
+import csv
+import StringIO
 
 
 # The Flask application and its configuration.
@@ -710,28 +712,47 @@ def product(product_id):
     return redirect(url_for('products'))
 
 
-@administrative
-def _show_harvest(dt):
-    """Helper: render a page depicting the products harvested at a
-    particular timestamp.
+def _product_info(orders):
+    """For a list of orders, get information about every product there
+    is at least one order for. Return a list of (product, items, total)
+    triples containing the Product, a list of OrderItems reflecting the
+    orders, and the total number of that product ordered across all
+    orders.
     """
-    orders = Order.query.filter_by(harvested=dt).all()
+    # We currently do this filtering "manually," although there is
+    # almost certainly a real query for this.
     order_ids = [o.id for o in orders]
-
-    # For every product that there is at least one order for. We
-    # currently do this filtering "manually," although there is almost
-    # certainly a real query for this.
     product_info = []
     for product in Product.query.order_by(Product.name):
         items = product.ordered.filter(OrderItem.order_id.in_(order_ids)).all()
         if items:
             total = sum(item.count for item in items)
             product_info.append((product, items, total))
+    return product_info
 
+
+@administrative
+def _show_harvest(dt):
+    """Helper: render a page depicting the products harvested at a
+    particular timestamp.
+    """
+    orders = Order.query.filter_by(harvested=dt).all()
+    product_info = _product_info(orders)
     return render_template('harvest.html',
                            orders=orders,
                            product_info=product_info,
                            harvestdt=dt)
+
+
+def _get_harvest(year, month, day):
+    """Get a harvest timestamp given a date. Abort with a 404 error if
+    no such harvest exists.
+    """
+    target = datetime.date(year, month, day)
+    for harvest in all_harvests():
+        if harvest.date() == target:
+            return harvest
+    abort(404)
 
 
 @app.route("/harvests/latest")
@@ -748,12 +769,27 @@ def latest_harvest():
 def harvest(year, month, day):
     """Show the products harvested on a particular day.
     """
-    target = datetime.date(year, month, day)
-    for harvest in all_harvests():
-        app.logger.info('{} {}'.format(harvest, target))
-        if harvest.date() == target:
-            return _show_harvest(harvest)
-    abort(404)
+    return _show_harvest(_get_harvest(year, month, day))
+
+
+@app.route("/harvests/<int:year>-<int:month>-<int:day>.csv")
+@administrative
+def harvest_csv(year, month, day):
+    """Get a CSV file containing total order information.
+    """
+    harvest = _get_harvest(year, month, day)
+    orders = Order.query.filter_by(harvested=harvest).all()
+    product_info = _product_info(orders)
+
+    # Generate a CSV file.
+    output = StringIO.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(('Product', 'Total'))
+    for product, items, total in product_info:
+        writer.writerow((product.name, total))
+    csv_data = output.getvalue()
+
+    return csv_data, 200, {'Content-Type': 'text/csv'}
 
 
 @app.route("/harvests")
