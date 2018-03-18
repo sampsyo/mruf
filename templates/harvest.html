@@ -13,6 +13,10 @@ for {{ harvestdt | dt }}.
 <a href="{{ url_for('harvests') }}">
     Show all harvests.
 </a>
+<a href="{{ url_for('harvest_csv',
+  year=harvestdt.year, month=harvestdt.month, day=harvestdt.day) }}" download>
+    Download CSV.
+</a>
 
 <h2>Harvest List</h2>
 <ul>
