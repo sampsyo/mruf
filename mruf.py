@@ -792,9 +792,11 @@ def _place_order(user):
         if previous_order:
             return render_template('already_ordered.html', order=order)
         else:
+            products = Product.query.filter_by(available=True). \
+                order_by(Product.name)
             return render_template(
                 'order.html',
-                products=Product.query.filter_by(available=True),
+                products=products,
                 user=user,
             )
 
