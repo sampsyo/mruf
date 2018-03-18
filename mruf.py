@@ -714,9 +714,12 @@ def _show_harvest(dt):
     """
     orders = Order.query.filter_by(harvested=dt).all()
     order_ids = [o.id for o in orders]
-    # There is almost certainly a real query for this.
+
+    # For every product that there is at least one order for. We
+    # currently do this filtering "manually," although there is almost
+    # certainly a real query for this.
     product_info = []
-    for product in Product.query:
+    for product in Product.query.order_by(Product.name):
         items = product.ordered.filter(OrderItem.order_id.in_(order_ids)).all()
         if items:
             total = sum(item.count for item in items)
