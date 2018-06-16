@@ -667,6 +667,72 @@ def register():
     return render_template('login.html')
 
 
+@app.route("/reset", methods=['POST'])
+def reset_send():
+    """Handle a request to reset a password.
+
+    This creates a magic, expiring link for the reset and sends it via
+    email.
+    """
+    email = request.form['email'].strip().lower()
+    user = User.query.filter(db.func.lower(User.email) == email).first()
+
+    # If the user exists, create the link and send the email.
+    if user:
+        token = _random_string(16)
+        user['reset_token'] = token
+        user['reset_time'] = time.time()
+        db.session.commit()
+
+        app.logger.info('sending reset email to %s', email)
+        reset_url = url_for('reset', user_id=user.id, token=token,
+                            _external=True)
+
+        send_email(
+            [user.email],
+            app.config['RESET_SUBJECT'],
+            app.config['RESET_BODY'].format(
+                name=user.name,
+                farm=g.state['farm'],
+                reset_url=reset_url,
+            ),
+        )
+
+        flash('We sent a password reset email to {}.'.format(email),
+              'success')
+
+    else:
+        app.logger.info('reset requested for non-existent user %s', email)
+        flash("We couldn't find {} in our records.".format(email),
+              'error')
+
+    return redirect(url_for('main'))
+
+
+@app.route("/reset/<int:user_id>/<token>", methods=['GET'])
+def reset(user_id, token):
+    """Handle a magic reset link and actually reset the user's password.
+    """
+    user = User.query.get_or_404(user_id)
+    if not user['reset_token'] or not user['reset_time']:
+        app.logger.info('user does not have a reset token')
+        abort(404)
+    if user['reset_token'] != token:
+        app.logger.info('incorrect reset token')
+        abort(404)
+    if time.time() - user['reset_time'] > app.config['RESET_EXPIRATION']:
+        app.logger.info('reset token has expired')
+        abort(404)
+
+    # Log the user in.
+    session['userid'] = user.id
+    session.permanent = True
+
+    # Redirect to the profile page so they can reset their password.
+    flash('You can reset your password on this page.', 'success')
+    return redirect(url_for('customer', user_id=user.id))
+
+
 @app.route("/products", methods=['GET', 'POST'])
 def products():
     """Show or add to the list of available products.

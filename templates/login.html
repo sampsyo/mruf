@@ -38,6 +38,20 @@
                     Register
                 </button>
             </form>
+
+            <h4>Reset password</h4>
+            <p>
+                Enter your account's email address and we'll email you a link
+                you can use to reset your password.
+            </p>
+            <form method="POST" action="/reset">
+                <input name="email" type="email"
+                    class="input-block-level" placeholder="Email address">
+
+                <button class="btn" type="submit">
+                    Reset
+                </button>
+            </form>
         </div>
     </div>
 {% endblock %}
