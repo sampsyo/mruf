@@ -2,13 +2,6 @@
 {% block content %}
     <div class="row">
         <div class="span4">
-            {% for category, message in
-                    get_flashed_messages(with_categories=True) %}
-                <div class="alert alert-{{category}}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-
             <h2>Sign in</h2>
             <form class="form-signin" method="POST" action="/login">
                 <input name="email" type="email"

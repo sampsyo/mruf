@@ -62,6 +62,17 @@
         </div>
 
         <div class="container">
+            <div class="row">
+                <div class="span12">
+                    {% for category, message in
+                            get_flashed_messages(with_categories=True) %}
+                    <div class="alert alert-{{category}}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
             {% block content %}
             <div class="row">
                 <div class="span12">
