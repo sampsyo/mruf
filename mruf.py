@@ -11,16 +11,26 @@ import parsedatetime
 import time
 from werkzeug import url_decode
 import requests
-from urlparse import urlparse, urljoin
-import urllib
 import re
 import pytz
 import json
 from collections import OrderedDict
 import csv
-import StringIO
 import hashlib
 import binascii
+
+
+# Python 2/3 compatibility.
+try:
+    from urlparse import urlparse, urljoin
+    from urllib import urlencode
+except ImportError:
+    from urllib.parse import urlparse, urljoin
+    from urllib.parse import urlencode
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 
 # Use PBKDF2 from the standard library if available, or fall back to the
@@ -601,7 +611,7 @@ def authenticated(func):
         if g.user is None:
             return redirect('{}?{}'.format(
                 url_for('main'),
-                urllib.urlencode({'next': request.url}),
+                urlencode({'next': request.url}),
             ))
         return func(*args, **kwargs)
     wrapped.__name__ = func.__name__
@@ -863,7 +873,7 @@ def harvest_csv(year, month, day):
     product_info = _product_info(orders)
 
     # Generate a CSV file.
-    output = StringIO.StringIO()
+    output = StringIO()
     writer = csv.writer(output)
     writer.writerow(('Product', 'Total'))
     for product, items, total in product_info:
