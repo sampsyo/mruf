@@ -1,7 +1,7 @@
 from flask import Flask
 from flask import request, session, redirect, url_for, render_template, g
 from flask import abort, flash
-from flask.ext.sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy
 from decimal import Decimal
 import sqlalchemy
 import string
