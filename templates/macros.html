@@ -1,0 +1,58 @@
+{% macro txtable(g, transactions, user=None) -%}
+    {% if transactions %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Transaction</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for txn in transactions %}
+                <tr>
+                    {% if txn.placed is defined %}
+                        {# An order. #}
+                        <td>{{ txn.placed | dt }}</td>
+                        <td>
+                            <a href="
+                                {%- if g.admin -%}
+                                    {{ url_for('edit_order', order_id=txn.id) }}
+                                {%- else -%}
+                                    {{ url_for('receipt', order_id=txn.id) }}
+                                {%- endif %}">
+                                Order for {{ txn.harvested | dt }}
+                            </a>
+                        </td>
+                        <td>{{ (0 - txn.total) | price }}</td>
+                    {% else %}
+                        {# A credit/debit. #}
+                        <td>{{ txn.date | dt }}</td>
+                        <td>
+                            {% if g.admin %}
+                            <a href="{{ url_for('creditdebit',
+                                                txn_id=txn.id) }}">
+                            {% endif %}
+                            {{ txn.description }}
+                            {% if g.admin %}
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td>{{ txn.amount | price }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+            {% if user -%}
+            <tfoot>
+                <tr>
+                    <th colspan="2" class="totalLabel">Balance</th>
+                    <th>{{ user.balance | price }}</th>
+                </tr>
+            </tfoot>
+            {%- endif %}
+        </table>
+    {% else %}
+        <p>No transactions yet.</p>
+    {% endif %}
+{%- endmacro %}
