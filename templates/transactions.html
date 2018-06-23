@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Transactions</h2>
+
+{% from 'macros.html' import txtable %}
+{{ txtable(g, transactions) }}
+
+{% endblock %}

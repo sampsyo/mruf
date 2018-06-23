@@ -581,7 +581,7 @@ def _datetime_filter(value, withtime=False):
     return _unpad(value.strftime(fmt))
 
 
-# Data access helper.
+# Data access helpers.
 
 def all_harvests():
     """Get a list of harvest dates for which orders have been placed.
@@ -591,6 +591,18 @@ def all_harvests():
                     .order_by(Order.harvested) \
                     .all()
     return [r[0] for r in res]
+
+
+def all_transactions():
+    """Get a list of all Order and CreditDebit objects on the entire
+    site, sorted reverse chronologically.
+    """
+    txns = Order.query.all() + CreditDebit.query.all()
+    txns.sort(
+        key=lambda o: o.date if isinstance(o, CreditDebit) else o.placed,
+        reverse=True,
+    )
+    return txns
 
 
 # Authentication decorators.
@@ -1193,6 +1205,15 @@ def admin():
         db.session.commit()
 
     return render_template('admin.html')
+
+
+@app.route("/transactions", methods=['GET'])
+@administrative
+def transactions():
+    """List all transactions (orders and credit/debits).
+    """
+    txns = all_transactions()
+    return render_template('transactions.html', transactions=txns)
 
 
 if __name__ == '__main__':
