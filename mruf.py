@@ -51,7 +51,7 @@ class MethodRewriteMiddleware(object):
                 method = method.encode('ascii', 'replace')
                 environ['REQUEST_METHOD'] = method
         return self.app(environ, start_response)
-app.wsgi_app = MethodRewriteMiddleware(app.wsgi_app)
+app.wsgi_app = MethodRewriteMiddleware(app.wsgi_app)  # noqa
 
 
 # http://flask.pocoo.org/snippets/62/
@@ -67,7 +67,7 @@ def is_safe_url(target):
 # Utilities.
 
 def _hash_pass(password):
-    if isinstance(password, unicode):
+    if not isinstance(password, bytes):
         password = password.encode('utf8')
     return pbkdf2.pbkdf2_hex(password, app.config['SALT'])
 
@@ -530,7 +530,7 @@ def _pennies_filter(value):
     pennies. This is useful for plumbing when communicating prices to
     the JavaScript frontend without resorting to floating-point.
     """
-    return unicode(int(value * 100))
+    return u'{}'.format(int(value * 100))
 
 
 def _unpad(s):
