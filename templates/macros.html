@@ -1,9 +1,16 @@
+{% macro userlink(user) %}
+<a href="{{ url_for('customer', user_id=user.id) }}">
+    {{ user.name }}
+</a>
+{% endmacro %}
+
 {% macro txtable(g, transactions, user=None) -%}
     {% if transactions %}
         <table class="table table-striped">
             <thead>
                 <tr>
                     <th>Date</th>
+                    {% if not user %}<th>Customer</th>{% endif %}
                     <th>Transaction</th>
                     <th>Amount</th>
                 </tr>
@@ -14,6 +21,9 @@
                     {% if txn.placed is defined %}
                         {# An order. #}
                         <td>{{ txn.placed | dt }}</td>
+                        {% if not user -%}
+                        <td>{{ userlink(txn.customer) }}</td>
+                        {%- endif %}
                         <td>
                             <a href="
                                 {%- if g.admin -%}
@@ -28,6 +38,9 @@
                     {% else %}
                         {# A credit/debit. #}
                         <td>{{ txn.date | dt }}</td>
+                        {% if not user -%}
+                        <td>{{ userlink(txn.customer) }}</td>
+                        {%- endif %}
                         <td>
                             {% if g.admin %}
                             <a href="{{ url_for('creditdebit',
