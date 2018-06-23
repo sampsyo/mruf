@@ -11,7 +11,7 @@ Getting Started
 
 Here's how you might set this thing up:
 
-1. Make sure you have [Python 2.7][py27] and [pip][].
+1. Make sure you have Python (either 2.7 or 3.3+) and [pip][].
 
 2. Install the dependencies by going into this directory and typing `pip
    install -r requirements.txt`.
@@ -36,7 +36,6 @@ Here's how you might set this thing up:
 [Dockerfile]: https://www.docker.io/learn/dockerfile/
 [flask-deploy]: http://flask.pocoo.org/docs/deploying/
 [pip]: http://www.pip-installer.org/en/latest/installing.html#install-pip
-[py27]: https://www.python.org/download/releases/2.7.6/
 [local-url]: http://127.0.0.1:5000/
 
 
