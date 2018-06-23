@@ -24,7 +24,7 @@
             Pickup Location<br>
             <span class="muted">{{ g.state.delivery_hint }}</span>
         </label>
-        {% for shortname, longname in g.state.location_map.iteritems() %}
+        {% for shortname, longname in g.state.location_map.items() %}
         <label class="checkbox">
             <input type="radio" name="pickup" value="{{ shortname }}"
                 {%- if user.delivery_notes == shortname -%}

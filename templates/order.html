@@ -24,7 +24,7 @@
 {{ macros.orderform(products, None) }}
 <div>
     <h2>Please select your pickup location</h2>
-    {% for shortname, longname in g.state.location_map.iteritems() %}
+    {% for shortname, longname in g.state.location_map.items() %}
     <label class="checkbox inline">
         <input type="radio" name="pickup" value="{{ shortname }}"
             {%- if user.delivery_notes == shortname -%}
