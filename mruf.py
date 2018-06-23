@@ -1230,7 +1230,7 @@ def transactions_csv():
         if isinstance(txn, Order):
             # A proper order.
             writer.writerow((
-                str(txn.placed),
+                txn.placed.strftime('%Y-%m-%d %H:%M:%S'),
                 txn.customer.name,
                 'Order',
                 0 - txn.total,
@@ -1238,7 +1238,7 @@ def transactions_csv():
         else:
             # A credit/debit.
             writer.writerow((
-                str(txn.date),
+                txn.date.strftime('%Y-%m-%d %H:%M:%S'),
                 txn.customer.name,
                 txn.description,
                 txn.amount,
