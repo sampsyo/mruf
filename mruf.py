@@ -2,7 +2,6 @@ from flask import Flask
 from flask import request, session, redirect, url_for, render_template, g
 from flask import abort, flash
 from flask.ext.sqlalchemy import SQLAlchemy
-import pbkdf2
 from decimal import Decimal
 import sqlalchemy
 import string
@@ -20,6 +19,17 @@ import json
 from collections import OrderedDict
 import csv
 import StringIO
+import hashlib
+import binascii
+
+
+# Use PBKDF2 from the standard library if available, or fall back to the
+# PyPI module.
+if hasattr(hashlib, 'pbkdf2_hmac'):
+    HAVE_HASHLIB_PBKDF2 = True
+else:
+    HAVE_HASHLIB_PBKDF2 = False
+    import pbkdf2
 
 
 # The Flask application and its configuration.
@@ -69,7 +79,12 @@ def is_safe_url(target):
 def _hash_pass(password):
     if not isinstance(password, bytes):
         password = password.encode('utf8')
-    return pbkdf2.pbkdf2_hex(password, app.config['SALT'])
+    if HAVE_HASHLIB_PBKDF2:
+        hash = hashlib.pbkdf2_hmac('sha1', password, app.config['SALT'],
+                                   1000, 24)
+        return binascii.hexlify(hash).decode('ascii')
+    else:
+        return pbkdf2.pbkdf2_hex(password, app.config['SALT'])
 
 
 def _parse_price(s):
