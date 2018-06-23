@@ -765,6 +765,10 @@ def reset(user_id, token):
     session['userid'] = user.id
     session.permanent = True
 
+    # "Consume" the reset token.
+    user['reset_token'] = None
+    db.session.commit()
+
     # Redirect to the profile page so they can reset their password.
     flash('You can reset your password on this page.', 'success')
     return redirect(url_for('customer', user_id=user.id))
