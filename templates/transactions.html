@@ -3,6 +3,9 @@
 
 <h2>Transactions</h2>
 
+Download this data as a
+<a href="{{ url_for('transactions_csv') }}">CSV file</a>.
+
 {% from 'macros.html' import txtable %}
 {{ txtable(g, transactions) }}
 

@@ -1207,13 +1207,45 @@ def admin():
     return render_template('admin.html')
 
 
-@app.route("/transactions", methods=['GET'])
+@app.route("/transactions")
 @administrative
 def transactions():
     """List all transactions (orders and credit/debits).
     """
     txns = all_transactions()
     return render_template('transactions.html', transactions=txns)
+
+
+@app.route("/transactions.csv")
+@administrative
+def transactions_csv():
+    """Get a CSV file containing all transaction information.
+    """
+    txns = all_transactions()
+
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(('Date', 'Customer', 'Transaction', 'Amount'))
+    for txn in txns:
+        if isinstance(txn, Order):
+            # A proper order.
+            writer.writerow((
+                str(txn.placed),
+                txn.customer.name,
+                'Order',
+                0 - txn.total,
+            ))
+        else:
+            # A credit/debit.
+            writer.writerow((
+                str(txn.date),
+                txn.customer.name,
+                txn.description,
+                txn.amount,
+            ))
+    csv_data = output.getvalue()
+
+    return csv_data, 200, {'Content-Type': 'text/csv'}
 
 
 if __name__ == '__main__':
