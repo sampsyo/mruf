@@ -17,6 +17,7 @@
             </form>
 
             <h4>New here?</h4>
+            {% if g.state.reg_form -%}
             <p>
                 If you don't have an account yet, fill out this form and we'll
                 set one up for you.
@@ -31,6 +32,13 @@
                     Register
                 </button>
             </form>
+            {%- else %}
+            <p>
+                This is the ordering site for CSA customers.
+                <a href="{{ g.state.home_link }}">Sign up for our CSA</a>
+                and we'll make you an account!
+            </p>
+            {%- endif %}
 
             <h4>Reset password</h4>
             <p>

@@ -1205,6 +1205,8 @@ def admin():
         values = {}
         for key in app.config['ADMIN_SETTINGS']:
             values[key] = request.form[key]
+        for key in app.config['ADMIN_SETTINGS_BOOL']:
+            values[key] = key in request.form
         g.state.update(values)
         db.session.commit()
 

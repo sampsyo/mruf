@@ -24,6 +24,13 @@
         <label for="timezone">Time zone</label>
         <input type="text" name="timezone" value="{{ g.state.timezone }}">
     </p>
+    <p>
+        <label for="reg_form" class="checkbox">
+            <input type="checkbox" name="reg_form"
+                {%- if g.state.reg_form %}checked{% endif %}>
+            Show registration form
+        </label>
+    </p>
 
     <h3>Email Stuff</h3>
     <p>
