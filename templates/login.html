@@ -35,7 +35,7 @@
             {%- else %}
             <p>
                 This is the ordering site for CSA customers.
-                <a href="{{ g.state.home_link }}">Sign up for our CSA</a>
+                <a href="{{ g.state.signup_link or g.state.home_link }}">Sign up for our CSA</a>
                 and we'll make you an account!
             </p>
             {%- endif %}
