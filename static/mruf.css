@@ -36,3 +36,22 @@
 .orderTotal {
     clear: both;
 }
+
+@media print {
+    body {
+        font-family: Helvetica, sans-serif;
+    }
+    .navbar {
+        display: none;
+    }
+    a:link {
+        text-decoration: none;
+        color: inherit;
+    }
+    .order .name {
+        font-weight: bold;
+    }
+    .order {
+        page-break-inside: avoid;
+    }
+}
