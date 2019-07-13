@@ -68,8 +68,10 @@ for {{ harvestdt | dt }}.
 </ul>
 
 <h2>Customers</h2>
+{% for delivery, order_group in orders | groupby('customer.delivery_notes') %}
+<h4>{{delivery}}</h4>
 <ul class="unstyled">
-{% for order in orders %}
+{% for order in order_group %}
 <li>
     {{ order.customer.name }}
     &lt;<a href="mailto:{{ order.customer.email }}">
@@ -78,6 +80,7 @@ for {{ harvestdt | dt }}.
 </li>
 {% endfor %}
 </ul>
+{% endfor %}
 
 </div>
 </div>

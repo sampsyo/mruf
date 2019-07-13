@@ -274,7 +274,10 @@ class SettingsMixin(object):
         if self.settings is not None and key in self.settings:
             return self.settings[key]
         else:
-            return self.settings_default.get(key)
+            if key in self.settings_default:
+                return self.settings_default.get(key)
+            else:
+                raise KeyError(key)
 
     def __setitem__(self, key, value):
         self.update({key: value})
