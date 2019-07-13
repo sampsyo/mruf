@@ -19,6 +19,12 @@ for {{ harvestdt | dt }}.
                     day=harvestdt.day) }}" download>
     Download CSV.
 </a>
+<a href="{{ url_for('harvest_orders',
+                    year=harvestdt.year,
+                    month=harvestdt.month,
+                    day=harvestdt.day) }}">
+    Printable slips.
+</a>
 
 <h2>Harvest List</h2>
 <ul>

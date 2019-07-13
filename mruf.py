@@ -902,6 +902,18 @@ def harvest_csv(year, month, day):
     return csv_data, 200, {'Content-Type': 'text/csv'}
 
 
+@app.route("/harvests/<int:year>-<int:month>-<int:day>/orders")
+@administrative
+def harvest_orders(year, month, day):
+    """Get a list of orders suitable for printing as packing slips.
+    """
+    harvest = _get_harvest(year, month, day)
+    orders = Order.query.filter_by(harvested=harvest).all()
+    return render_template('harvest_orders.html',
+                           orders=orders,
+                           harvestdt=harvest)
+
+
 @app.route("/harvests")
 @administrative
 def harvests():

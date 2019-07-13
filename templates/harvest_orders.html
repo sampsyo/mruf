@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+<div class="span8">
+
+<h2>Orders for {{ harvestdt | dt}}</h2>
+
+{% for order in orders %}
+<div class="order">
+    <a href="{{ url_for('customer', user_id=order.customer.id) }}">
+        {{- order.customer.name -}}
+    </a>:
+    <a href="{{ url_for('edit_order', order_id=order.id) }}">
+        {{- order.total | price -}}
+    </a>.
+    Delivery: {{ order.customer.delivery_notes }}
+    <ul>
+    {% for item in order.items %}
+        <li>
+            {{ item.product.name }}:
+            {{ item.count }}
+        </li>
+    {% endfor %}
+    </ul>
+</div>
+{% endfor %}
+
+</div>
+</div>
+{% endblock %}
