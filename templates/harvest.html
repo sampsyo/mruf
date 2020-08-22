@@ -88,6 +88,22 @@ for {{ harvestdt | dt }}.
 </ul>
 {% endfor %}
 
+<h2>Delivery</h2>
+<ul class="unstyled">
+{% for order in orders %}
+{% if config.DELIVERY_OPTION in order.customer.delivery_notes %}
+<li>
+    <a href="{{ url_for('customer', user_id=order.customer.id) }}">
+        {{- order.customer.name -}}
+    </a>
+    <address class="address">
+        {{ order.customer.address | replace("\n", "<br>" | safe) }}
+    </address>
+</li>
+{% endif %}
+{% endfor %}
+</ul>
+
 </div>
 </div>
 {% endblock %}
