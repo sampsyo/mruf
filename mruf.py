@@ -13,7 +13,7 @@ import requests
 import re
 import pytz
 import json
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import csv
 import hashlib
 import binascii
@@ -839,6 +839,19 @@ def _product_info(orders):
     return product_info
 
 
+def _product_info_by_location(orders):
+    """Get total product information broken down by all delivery
+    destinations in the set of orders.
+    """
+    orders_by_loc = defaultdict(list)
+    for o in orders:
+        orders_by_loc[o.customer.delivery_notes].append(o)
+    return {
+        loc: _product_info(os)
+        for loc, os in orders_by_loc.items()
+    }
+
+
 @administrative
 def _show_harvest(dt):
     """Helper: render a page depicting the products harvested at a
@@ -846,9 +859,11 @@ def _show_harvest(dt):
     """
     orders = Order.query.filter_by(harvested=dt).all()
     product_info = _product_info(orders)
+    location_info = _product_info_by_location(orders)
     return render_template('harvest.html',
                            orders=orders,
                            product_info=product_info,
+                           location_info=location_info,
                            harvestdt=dt)
 
 

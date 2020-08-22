@@ -94,6 +94,18 @@ for {{ harvestdt | dt }}.
 </ul>
 {% endfor %}
 
+<h2>Locations</h2>
+{% for location, product_info in location_info.items() | sort %}
+<h4>{{ location }}</h4>
+<ul>
+{% for product, items, total in product_info %}
+    <li>
+        {{ product.name }}: {{ total }}
+    </li>
+{% endfor %}
+</ul>
+{% endfor %}
+
 <h2>Delivery</h2>
 <ul class="unstyled">
 {% for order in orders %}
