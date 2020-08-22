@@ -1156,6 +1156,8 @@ def customer(user_id):
             user.delivery_notes = request.form['delivery_notes']
         if request.form.get('pickup'):
             user.delivery_notes = request.form.get('pickup')
+        if request.form.get('address'):
+            user['address'] = request.form.get('address')
 
         if g.admin:
             user.admin = bool(request.form.get('farmer'))

@@ -35,6 +35,13 @@
         </label>
         {% endfor %}
     </p>
+    <p>
+        <label for="address">
+            Address<br>
+            <span class="muted">For home delivery.</span>
+        </label>
+        <textarea name="address">{{ user.address }}</textarea>
+    </p>
     {% if g.admin %}
     <p>
         <label class="checkbox inline">
