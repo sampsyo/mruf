@@ -900,6 +900,26 @@ def harvest_csv(year, month, day):
     return csv_data, 200, {'Content-Type': 'text/csv'}
 
 
+@app.route("/harvests/<int:year>-<int:month>-<int:day>/delivery.csv")
+@administrative
+def delivery_csv(year, month, day):
+    """Get a CSV file with delivery addresses.
+    """
+    harvest = _get_harvest(year, month, day)
+    orders = [o for o in Order.query.filter_by(harvested=harvest).all()
+              if app.config['DELIVERY_OPTION'] in o.customer.delivery_notes]
+
+    # Generate a CSV file.
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerow(('Customer', 'Address'))
+    for order in orders:
+        writer.writerow((order.customer.name, order.customer['address']))
+    csv_data = output.getvalue()
+
+    return csv_data, 200, {'Content-Type': 'text/csv'}
+
+
 @app.route("/harvests/<int:year>-<int:month>-<int:day>/orders")
 @administrative
 def harvest_orders(year, month, day):

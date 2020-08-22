@@ -25,6 +25,12 @@ for {{ harvestdt | dt }}.
                     day=harvestdt.day) }}">
     Printable slips.
 </a>
+<a href="{{ url_for('delivery_csv',
+                    year=harvestdt.year,
+                    month=harvestdt.month,
+                    day=harvestdt.day) }}" download>
+    Delivery CSV.
+</a>
 
 <h2>Harvest List</h2>
 <ul>
