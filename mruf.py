@@ -9,7 +9,6 @@ import random
 import datetime
 import parsedatetime
 import time
-from werkzeug import url_decode
 import requests
 import re
 import pytz
@@ -22,10 +21,10 @@ import binascii
 
 # Python 2/3 compatibility.
 try:
-    from urlparse import urlparse, urljoin
+    from urlparse import urlparse, urljoin, parse_qs
     from urllib import urlencode
 except ImportError:
-    from urllib.parse import urlparse, urljoin
+    from urllib.parse import urlparse, urljoin, parse_qs
     from urllib.parse import urlencode
 try:
     from StringIO import StringIO
@@ -65,11 +64,10 @@ class MethodRewriteMiddleware(object):
 
     def __call__(self, environ, start_response):
         if 'METHOD_OVERRIDE' in environ.get('QUERY_STRING', ''):
-            args = url_decode(environ['QUERY_STRING'])
+            args = parse_qs(environ['QUERY_STRING'])
             method = args.get('__METHOD_OVERRIDE__')
             if method:
-                method = method.encode('ascii', 'replace')
-                environ['REQUEST_METHOD'] = method
+                environ['REQUEST_METHOD'] = method[0]
         return self.app(environ, start_response)
 app.wsgi_app = MethodRewriteMiddleware(app.wsgi_app)  # noqa
 
